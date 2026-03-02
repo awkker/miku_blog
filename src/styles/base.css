@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&display=swap');
+
+:root {
+  --miku-color: rgb(102, 205, 170);
+  --miku-color-rgb: 102, 205, 170;
+  --font-body: 'Noto Sans SC', 'Noto Sans JP', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-title: 'Noto Serif SC', 'Noto Serif JP', 'Songti SC', 'STSong', serif;
+}
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #f9fafa;
+}
+
+body {
+  font-family: var(--font-body);
+  overscroll-behavior: none;
+}

@@ -1,73 +1,84 @@
 # miku_blog
 
-This template should help get you started developing with Vue 3 in Vite.
+一个基于 Vue 3 + TypeScript + Vite 的个人站点项目，当前包含：
+- 首页：液态玻璃（Liquid Glass）组件化效果（导航、文案框、Dock）
+- 博客列表页：卡片化列表、侧栏信息、Dock 显隐交互
+- 博客阅读页：Markdown 渲染、目录导航、阅读进度与字号调节
+- 背景动效：左上向右下飘落的五彩花瓣动画
 
-## Recommended IDE Setup
+## 致谢
+- 液态玻璃效果思路与实现参考自：<https://github.com/shuding/liquid-glass>
+- 原仓库实现以 JavaScript 为主，本项目已按当前工程规范改造为 TypeScript 版本并做了组件化封装
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 技术栈
+- Vue 3 (`<script setup>`)
+- TypeScript（`vue-tsc`）
+- Vite
+- Vitest + Vue Test Utils
+- Playwright
 
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
+## 目录结构（核心）
+```text
+src/
+  components/
+    AppTopNav.vue
+    TypewriterQuoteGlass.vue
+    AppDock.vue
+    FallingPetals.vue
+    LiquidGlassFrame.vue
+    blog/
+      BlogListHero.vue
+      BlogTagNav.vue
+      BlogPostCard.vue
+      BlogSidebar.vue
+      BlogDockToggle.vue
+      BlogPostHero.vue
+      BlogArticleContent.vue
+      BlogPostToc.vue
+  composables/
+    useTypewriter.ts
+  content/
+    blogPosts.ts
+    posts/
+      *.md
+  utils/
+    liquidGlass.ts
+    markdown.ts
+  styles/
+    base.css
+  views/
+    HomeView.vue
+    BlogListView.vue
+    BlogPostView.vue
+  App.vue
+  main.ts
 ```
 
-### Compile and Hot-Reload for Development
-
+## 快速开始
 ```sh
+npm install
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
-
+## 常用命令
 ```sh
-npm run build
+npm run dev         # 本地开发
+npm run type-check  # TS 类型检查
+npm run test:unit   # 单元测试
+npm run test:e2e    # E2E 测试
+npm run build       # 构建
+npm run lint        # 代码检查并修复
 ```
 
-### Run Unit Tests with [Vitest](https://vitest.dev/)
+## 参数调整入口
+- 花瓣数量/速度/颜色：`src/components/FallingPetals.vue`
+- 液态玻璃折射参数：`src/components/LiquidGlassFrame.vue` + `src/utils/liquidGlass.ts`
+- 打字机速度：`src/composables/useTypewriter.ts`
+- 博客文章元数据：`src/content/blogPosts.ts`
+- 博客正文 Markdown：`src/content/posts/*.md`
+- Markdown 渲染逻辑：`src/utils/markdown.ts`
 
-```sh
-npm run test:unit
-```
-
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
-
-```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
-npm run build
-
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+## 文档
+- 液态玻璃实现说明：`docs/liquid-glass/README.md`
+- 代码书写规范：`docs/CODING_STYLE.md`
+- 博客系统重构总结：`docs/BLOG_REFACTOR_SUMMARY.md`

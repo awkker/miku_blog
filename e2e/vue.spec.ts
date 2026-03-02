@@ -4,5 +4,6 @@ import { test, expect } from '@playwright/test'
 // https://playwright.dev/docs/intro
 test('visits the app root url', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('h1')).toHaveText('You did it!')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('薰逸の猫窝')
+  await expect(page.getByText('友情链接')).toBeVisible()
 })
