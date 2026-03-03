@@ -6,11 +6,11 @@
 
     <section class="content-shell">
       <main class="main-pane">
-        <BlogTagNav :tags="tags" />
+        <BlogTagNav :tags="tags" :active-tag="selectedTag" @select="selectTag" />
 
         <div class="post-grid">
           <BlogPostCard
-            v-for="post in posts"
+            v-for="post in filteredPosts"
             :key="post.slug"
             :post="post"
             :expanded="expandedCoverSlug === post.slug"
@@ -22,7 +22,7 @@
       </main>
 
       <aside class="side-pane">
-        <BlogSidebar :hot-posts="hotPosts" @open-post="openPost" />
+        <BlogSidebar :hot-posts="hotPosts" :author-stats="authorStats" />
       </aside>
     </section>
 
@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import FallingPetals from '@/components/FallingPetals.vue'
@@ -40,16 +40,35 @@ import BlogListHero from '@/components/blog/BlogListHero.vue'
 import BlogPostCard from '@/components/blog/BlogPostCard.vue'
 import BlogSidebar from '@/components/blog/BlogSidebar.vue'
 import BlogTagNav from '@/components/blog/BlogTagNav.vue'
-import { getAllBlogPostMetas, getHotBlogPostMetas } from '@/content/blogPosts'
-
-const tags = ['全部', '旅行风景', '技术随笔', '日常片段', '摄影后期', '阅读札记', '音乐记录', '生活感悟']
+import {
+  getAllBlogPostMetas,
+  getBlogAuthorStats,
+  getBlogStatsUpdatedEventName,
+  getHotBlogPostMetas,
+  incrementBlogListPageVisits,
+} from '@/content/blogPosts'
 
 const router = useRouter()
-const posts = getAllBlogPostMetas()
-const hotPosts = getHotBlogPostMetas()
+const allPosts = ref(getAllBlogPostMetas())
+const hotPosts = ref(getHotBlogPostMetas())
+const authorStats = ref(getBlogAuthorStats())
+const blogStatsUpdatedEventName = getBlogStatsUpdatedEventName()
 
 const isDockOpen = ref(false)
 const expandedCoverSlug = ref<string | null>(null)
+const selectedTag = ref('全部')
+
+const tags = computed(() => {
+  const uniqueCategories = new Set(allPosts.value.map((post) => post.category))
+  return ['全部', ...Array.from(uniqueCategories)]
+})
+
+const filteredPosts = computed(() => {
+  if (selectedTag.value === '全部') {
+    return allPosts.value
+  }
+  return allPosts.value.filter((post) => post.category === selectedTag.value)
+})
 
 function showDock(): void {
   isDockOpen.value = true
@@ -72,6 +91,39 @@ function resetCover(slug: string): void {
     expandedCoverSlug.value = null
   }
 }
+
+function selectTag(tag: string): void {
+  selectedTag.value = tag
+  expandedCoverSlug.value = null
+}
+
+function refreshBlogData(): void {
+  allPosts.value = getAllBlogPostMetas()
+  hotPosts.value = getHotBlogPostMetas()
+  authorStats.value = getBlogAuthorStats()
+}
+
+function handleStatsUpdated(): void {
+  refreshBlogData()
+}
+
+function handleStorageChange(event: StorageEvent): void {
+  if (!event.key || event.key.startsWith('miku_blog_')) {
+    refreshBlogData()
+  }
+}
+
+onMounted(() => {
+  incrementBlogListPageVisits()
+  refreshBlogData()
+  window.addEventListener(blogStatsUpdatedEventName, handleStatsUpdated)
+  window.addEventListener('storage', handleStorageChange)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener(blogStatsUpdatedEventName, handleStatsUpdated)
+  window.removeEventListener('storage', handleStorageChange)
+})
 </script>
 
 <style scoped>

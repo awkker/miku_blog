@@ -74,9 +74,25 @@ npm run lint        # 代码检查并修复
 - 花瓣数量/速度/颜色：`src/components/FallingPetals.vue`
 - 液态玻璃折射参数：`src/components/LiquidGlassFrame.vue` + `src/utils/liquidGlass.ts`
 - 打字机速度：`src/composables/useTypewriter.ts`
-- 博客文章元数据：`src/content/blogPosts.ts`
-- 博客正文 Markdown：`src/content/posts/*.md`
+- 博客文章元数据（自动读取 Frontmatter）：`src/content/posts/*.md`
 - Markdown 渲染逻辑：`src/utils/markdown.ts`
+
+## 博客数据说明
+- 文章列表会自动扫描 `src/content/posts/*.md`，无需在 `blogPosts.ts` 手动维护数组。
+- 每篇文章请在 Markdown 顶部添加 frontmatter：
+
+```md
+---
+title: 文章标题
+date: 2026-03-03
+category: 技术随笔
+summary: 列表摘要
+cover: /photo/封面.avif
+views: 1,000
+---
+```
+
+- 阅读数会在进入文章详情页时自动累加，统计结果保存到浏览器 `localStorage`（key：`miku_blog_post_views`）。
 
 ## 文档
 - 液态玻璃实现说明：`docs/liquid-glass/README.md`
