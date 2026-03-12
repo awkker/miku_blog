@@ -1,59 +1,101 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import LiquidGlassCard from '../components/LiquidGlassCard.vue';
+import BaseHead from '../components/BaseHead.astro'
+import LiquidGlassCard from '../components/LiquidGlassCard.vue'
+import SystemClock from '../components/SystemClock.vue'
+import TypewriterSubtitle from '../components/TypewriterSubtitle.vue'
+
+const dockItems = [
+  { name: '访客', href: '/about', icon: 'person' },
+  { name: '博客', href: '/blog', icon: 'book' },
+  { name: '音乐', href: '/blog', icon: 'music' },
+  { name: '相册', href: '/blog', icon: 'image' },
+  { name: '终端', href: '/blog', icon: 'terminal' },
+]
+
+const iconPaths: Record<string, string> = {
+  person:
+    'M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.87 0-7 2.01-7 4.5V21h14v-2.5c0-2.49-3.13-4.5-7-4.5z',
+  book: 'M18 2H8a3 3 0 0 0-3 3v14a3 3 0 0 1 3-3h10V2zm2 16H8a1 1 0 0 0-1 1v1h13v-2z',
+  music:
+    'M16 3v11.55A3.98 3.98 0 0 0 14 14a4 4 0 1 0 4 4V7h4V3h-6zM7 6v8.55A3.98 3.98 0 0 0 5 14a4 4 0 1 0 4 4V6H7z',
+  image:
+    'M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14h18zm-2-2H5l3.5-4.5 2.5 3 3.5-4.5L19 17zM8 9a2 2 0 1 0 0.001-3.999A2 2 0 0 0 8 9z',
+  terminal: 'M4 5h16v14H4V5zm3 3l2 2-2 2m4 1h5',
+}
 ---
 
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <BaseHead title="液态玻璃演示" description="液态玻璃模块演示页面" />
-    <style>
-      main {
-        width: min(720px, calc(100% - 2rem));
-        min-height: 100vh;
-        margin: 0 auto;
-        display: grid;
-        place-items: center;
-      }
-
-      :global(.liquid-demo-card) {
-        width: min(440px, 100%);
-        min-height: 260px;
-        padding: 2rem;
-        border-radius: 32px;
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 20px 60px rgba(15, 18, 25, 0.2);
-        background: rgba(255, 255, 255, 0.18);
-        color: rgb(var(--black));
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        gap: 0.75rem;
-      }
-
-      :global(.liquid-demo-card h2) {
-        margin: 0;
-        font-size: 2rem;
-      }
-
-      :global(.liquid-demo-card p) {
-        margin: 0;
-        color: rgb(var(--gray-dark));
-      }
-    </style>
+    <BaseHead title="Snowykami OS" description="Miku Blog 开屏页" />
   </head>
-  <body>
-    <main>
-    <LiquidGlassCard 
-      client:load 
-      options={{ borderRadius: 32, blur: 0.5, interactive: true }}
-      class="liquid-demo-card"
-    >
-      <h2>液态玻璃模块</h2>
-      <p>鼠标滑过试试看折射效果喵！</p>
-    </LiquidGlassCard>
+  <body class="overflow-hidden bg-slate-900 text-white">
+    <main class="relative h-screen w-screen overflow-hidden">
+      <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=2200&q=80')] bg-cover bg-center bg-no-repeat" />
+      <div class="absolute inset-0 bg-gradient-to-b from-slate-900/15 via-slate-950/35 to-slate-950/60" />
+
+      <header class="absolute left-0 top-0 z-20 flex h-8 w-full items-center justify-between border-b border-white/20 bg-white/20 px-4 text-sm font-medium text-white/90 backdrop-blur-md">
+        <div class="flex items-center gap-2 text-xs tracking-[0.2em]">
+          <span class="rounded bg-white/20 px-2 py-0.5">SNOWYKAMI OS</span>
+        </div>
+
+        <div class="flex items-center gap-3 text-[11px]">
+          <span class="rounded-full bg-white/15 px-2 py-0.5">暂无播放</span>
+          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="上一首">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M6 6h2v12H6zm3 6l9-6v12z" /></svg>
+          </button>
+          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="暂停">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M7 5h4v14H7zm6 0h4v14h-4z" /></svg>
+          </button>
+          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="下一首">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M16 6h2v12h-2zM7 6l9 6-9 6z" /></svg>
+          </button>
+          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="循环">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg>
+          </button>
+          <input type="range" min="0" max="100" value="45" class="h-1.5 w-16 cursor-pointer accent-miku" aria-label="音量" />
+          <span>⛅ 22°C</span>
+          <SystemClock client:load />
+        </div>
+      </header>
+
+      <section class="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
+        <h1 class="animate-fade-up text-[clamp(3.5rem,9vw,6rem)] font-black tracking-[0.08em] text-white drop-shadow-[0_10px_24px_rgba(15,23,42,0.75)]">
+          Miku Chronicle
+        </h1>
+        <TypewriterSubtitle
+          client:load
+          text="「月が綺麗ですね, 風も優しいですね」。"
+        />
+      </section>
+
+      <div class="absolute bottom-4 left-1/2 z-20 -translate-x-1/2">
+        <LiquidGlassCard client:load interactive={true} class="rounded-2xl px-4 py-3">
+          <ul class="flex items-end gap-2">
+            {
+              dockItems.map((item, index) => (
+                <li>
+                  <a
+                    href={item.href}
+                    class:list={[
+                      'group flex w-16 flex-col items-center gap-1 rounded-2xl py-2 text-xs text-white/90 transition duration-300 hover:scale-125 hover:bg-white/20',
+                      index === 1 && 'animate-dock-float',
+                    ]}
+                  >
+                    <span class="flex h-9 w-9 items-center justify-center rounded-xl border border-white/30 bg-white/15">
+                      <svg viewBox="0 0 24 24" class="h-5 w-5 fill-none stroke-current stroke-[1.5]">
+                        <path d={iconPaths[item.icon]} />
+                      </svg>
+                    </span>
+                    <span>{item.name}</span>
+                    <span class:list={['h-1.5 w-1.5 rounded-full bg-white', index === 1 ? 'opacity-100' : 'opacity-0']} />
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </LiquidGlassCard>
+      </div>
     </main>
   </body>
 </html>

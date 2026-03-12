@@ -1,44 +1,82 @@
 <template>
-  <div ref="glassContainer" class="liquid-glass-wrapper">
-    <slot />
+  <div
+    ref="frameRef"
+    class="glass-layer relative overflow-hidden rounded-3xl"
+  >
+    <div class="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/60 via-white/20 to-transparent" />
+    <div class="relative z-[1]">
+      <slot />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { createLiquidGlass } from '../utils/liquidGlass'
-import type { LiquidGlassController, LiquidGlassOptions } from '../utils/liquidGlass'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-// 允许外部传入玻璃的配置参数
-const props = defineProps<{
-  options?: LiquidGlassOptions
-}>()
+import { createLiquidGlass, type LiquidGlassController } from '../utils/liquidGlass'
 
-const glassContainer = ref<HTMLElement | null>(null)
+interface Props {
+  borderRadius?: number
+  cornerSoftness?: number
+  displacementStrength?: number
+  edgeRefractionStrength?: number
+  blur?: number
+  contrast?: number
+  brightness?: number
+  saturate?: number
+  interactive?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  borderRadius: 24,
+  cornerSoftness: 0.12,
+  displacementStrength: 1,
+  edgeRefractionStrength: 0.75,
+  blur: 0.3,
+  contrast: 1.14,
+  brightness: 1.04,
+  saturate: 1.08,
+  interactive: true,
+})
+
+const frameRef = ref<HTMLElement | null>(null)
 let controller: LiquidGlassController | null = null
 
-// onMounted 只会在客户端浏览器环境执行，完美避开 Astro 的服务端渲染报错
 onMounted(() => {
-  if (glassContainer.value) {
-    // 实例化你的液态玻璃魔法！
-    controller = createLiquidGlass(glassContainer.value, props.options)
+  if (!frameRef.value) {
+    return
   }
+
+  controller = createLiquidGlass(frameRef.value, {
+    borderRadius: props.borderRadius,
+    cornerSoftness: props.cornerSoftness,
+    displacementStrength: props.displacementStrength,
+    edgeRefractionStrength: props.edgeRefractionStrength,
+    blur: props.blur,
+    contrast: props.contrast,
+    brightness: props.brightness,
+    saturate: props.saturate,
+    interactive: props.interactive,
+  })
 })
 
-// 组件销毁时，记得清理绑定的事件和创建的 canvas/svg，防止内存泄漏
+watch(
+  () => ({
+    borderRadius: props.borderRadius,
+    cornerSoftness: props.cornerSoftness,
+    displacementStrength: props.displacementStrength,
+    edgeRefractionStrength: props.edgeRefractionStrength,
+    blur: props.blur,
+    contrast: props.contrast,
+    brightness: props.brightness,
+    saturate: props.saturate,
+    interactive: props.interactive,
+  }),
+  (next) => controller?.update(next),
+)
+
 onBeforeUnmount(() => {
-  if (controller) {
-    controller.destroy()
-  }
+  controller?.destroy()
+  controller = null
 })
 </script>
-
-<style scoped>
-/* 给容器加一点基础样式，确保 backdrop-filter 能正常生效 */
-.liquid-glass-wrapper {
-  position: relative;
-  overflow: hidden; /* 防止内容溢出破坏玻璃边缘 */
-  /* 可以配合 Tailwind 加一些透明背景，比如 bg-white/10 */
-  background: rgba(255, 255, 255, 0.05); 
-}
-</style>
