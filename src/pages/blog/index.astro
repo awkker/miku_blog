@@ -27,7 +27,7 @@ const hotList = posts.slice(0, 7).map((post, index) => ({
   </head>
   <body class="bg-slate-100 text-slate-800">
     <div class="relative min-h-screen">
-      <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(102,205,170,0.22),transparent_45%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]" />
+      <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(57,197,187,0.22),transparent_45%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]" />
       <BlogTopNav currentPath={Astro.url.pathname} />
 
       <header class="relative h-[40vh] min-h-[280px] overflow-hidden">
@@ -104,7 +104,7 @@ const hotList = posts.slice(0, 7).map((post, index) => ({
         </section>
 
         <aside class="space-y-6">
-          <LiquidGlassCard client:load class="rounded-3xl p-6">
+          <LiquidGlassCard client:load padding="24px">
             <div class="space-y-4 text-center">
               <img
                 src="/picture/author.jpg"
@@ -132,7 +132,7 @@ const hotList = posts.slice(0, 7).map((post, index) => ({
             </div>
           </LiquidGlassCard>
 
-          <LiquidGlassCard client:load class="rounded-3xl p-6">
+          <LiquidGlassCard client:load padding="24px">
             <h3 class="mb-4 text-sm font-bold tracking-[0.22em] text-slate-700">HOT RANKING</h3>
             <ul class="space-y-3">
               {

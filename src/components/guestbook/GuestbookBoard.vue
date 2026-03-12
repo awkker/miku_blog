@@ -1,6 +1,6 @@
 <template>
   <section class="space-y-6">
-    <LiquidGlassCard class="rounded-3xl p-6">
+    <LiquidGlassCard padding="24px">
       <form class="space-y-4" @submit.prevent="handleSubmit">
         <div class="grid gap-4 md:grid-cols-2">
           <MikuInput

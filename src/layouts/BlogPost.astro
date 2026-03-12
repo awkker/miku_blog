@@ -22,7 +22,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings = [] } = A
   </head>
 
   <body class="bg-slate-100 text-slate-800">
-    <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(102,205,170,0.18),transparent_45%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)]" />
+    <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(57,197,187,0.18),transparent_45%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)]" />
 
     <BlogTopNav currentPath={Astro.url.pathname} />
 
@@ -35,7 +35,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings = [] } = A
         </aside>
 
         <article class="space-y-6">
-          <LiquidGlassCard client:load class="overflow-hidden rounded-3xl">
+          <LiquidGlassCard client:load>
             <div class="relative h-72 w-full sm:h-96">
               {heroImage ? (
                 <Image src={heroImage} alt={title} width={1200} height={640} class="h-full w-full object-cover" />
@@ -63,7 +63,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings = [] } = A
             </div>
           </LiquidGlassCard>
 
-          <LiquidGlassCard client:load class="rounded-3xl px-5 py-6 sm:px-10 sm:py-10">
+          <LiquidGlassCard client:load padding="24px 20px">
             <div id="article-content" class="article-prose prose-pre:m-0">
               <slot />
             </div>

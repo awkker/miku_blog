@@ -1,5 +1,5 @@
 <template>
-  <LiquidGlassCard class="rounded-3xl p-4 transition duration-300 hover:shadow-[0_10px_28px_rgba(15,23,42,0.3)]">
+  <LiquidGlassCard padding="16px" class="transition duration-300 hover:shadow-[0_10px_28px_rgba(15,23,42,0.3)]">
     <article class="flex items-start gap-3">
       <img
         :src="message.avatar"

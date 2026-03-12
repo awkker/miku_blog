@@ -27,16 +27,15 @@ const iconPaths: Record<string, string> = {
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <BaseHead title="Snowykami OS" description="Miku Blog 开屏页" />
+    <BaseHead title="nanamiku blog" description="nanamiku blog 开屏页" />
   </head>
-  <body class="overflow-hidden bg-slate-900 text-white">
+  <body class="overflow-hidden bg-slate-900 text-[#39c5bb]">
     <main class="relative h-screen w-screen overflow-hidden">
-      <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1518895949257-7621c3c786d7?auto=format&fit=crop&w=2200&q=80')] bg-cover bg-center bg-no-repeat" />
-      <div class="absolute inset-0 bg-gradient-to-b from-slate-900/15 via-slate-950/35 to-slate-950/60" />
+      <div class="absolute inset-0 bg-[url('../../public/picture/封面.avif')] bg-cover bg-center bg-no-repeat filter-none blur-0" />
 
-      <header class="absolute left-0 top-0 z-20 flex h-8 w-full items-center justify-between border-b border-white/20 bg-white/20 px-4 text-sm font-medium text-white/90 backdrop-blur-md">
+      <header class="absolute left-0 top-0 z-20 flex h-8 w-full items-center justify-between border-b border-white/30 bg-white/35 px-4 text-sm font-medium text-[#39c5bb]/90 backdrop-blur-none">
         <div class="flex items-center gap-2 text-xs tracking-[0.2em]">
-          <span class="rounded bg-white/20 px-2 py-0.5">SNOWYKAMI OS</span>
+          <span class="rounded bg-white/20 px-2 py-0.5">NANAMIKU BLOG</span>
         </div>
 
         <div class="flex items-center gap-3 text-[11px]">
@@ -60,8 +59,8 @@ const iconPaths: Record<string, string> = {
       </header>
 
       <section class="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        <h1 class="animate-fade-up text-[clamp(3.5rem,9vw,6rem)] font-black tracking-[0.08em] text-white drop-shadow-[0_10px_24px_rgba(15,23,42,0.75)]">
-          Miku Chronicle
+        <h1 class="hero-title animate-fade-up text-[clamp(2.9rem,7.4vw,5.6rem)] tracking-[0.03em] text-[#60e8dc]">
+          薰逸の猫窝
         </h1>
         <TypewriterSubtitle
           client:load
@@ -70,7 +69,7 @@ const iconPaths: Record<string, string> = {
       </section>
 
       <div class="absolute bottom-4 left-1/2 z-20 -translate-x-1/2">
-        <LiquidGlassCard client:load interactive={true} class="rounded-2xl px-2 py-3 sm:px-4">
+        <LiquidGlassCard client:load width="auto" maxWidth="max-content" padding="10px 14px" borderRadius={16}>
           <ul class="flex items-end gap-1.5 sm:gap-2">
             {
               dockItems.map((item, index) => (
@@ -78,7 +77,7 @@ const iconPaths: Record<string, string> = {
                   <a
                     href={item.href}
                     class:list={[
-                      'group flex w-12 flex-col items-center gap-1 rounded-2xl py-2 text-[10px] text-white/90 transition duration-300 hover:scale-110 hover:bg-white/20 sm:w-16 sm:text-xs sm:hover:scale-125',
+                      'group flex w-12 flex-col items-center gap-1 rounded-2xl py-2 text-[10px] text-[#39c5bb]/90 transition duration-300 hover:scale-110 hover:bg-white/20 sm:w-16 sm:text-xs sm:hover:scale-125',
                       index === 1 && 'animate-dock-float',
                     ]}
                   >
@@ -99,3 +98,14 @@ const iconPaths: Record<string, string> = {
     </main>
   </body>
 </html>
+
+<style>
+  .hero-title {
+    font-family: 'Noto Serif SC', 'Noto Serif JP', 'Songti SC', 'STSong', serif;
+    font-weight: 700;
+    line-height: 1.08;
+    text-shadow:
+      0 6px 18px rgba(10, 30, 34, 0.36),
+      0 0 28px rgba(96, 232, 220, 0.22);
+  }
+</style>

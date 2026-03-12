@@ -1,5 +1,5 @@
 <template>
-  <LiquidGlassCard class="rounded-3xl p-5">
+  <LiquidGlassCard padding="20px">
     <div class="flex items-start justify-between gap-3">
       <div>
         <p class="text-xs uppercase tracking-[0.2em] text-white/60">{{ label }}</p>

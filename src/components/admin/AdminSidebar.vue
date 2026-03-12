@@ -1,6 +1,6 @@
 <template>
   <aside class="hidden w-64 shrink-0 lg:block">
-    <LiquidGlassCard class="sticky top-6 rounded-3xl p-4">
+    <LiquidGlassCard padding="16px" class="sticky top-6">
       <p class="px-2 text-xs uppercase tracking-[0.2em] text-white/60">Nanamiku Admin</p>
 
       <nav class="mt-4 space-y-1">
@@ -34,7 +34,7 @@
       v-if="mobileOpen"
       class="fixed left-3 top-3 z-50 w-[78vw] max-w-xs lg:hidden"
     >
-      <LiquidGlassCard class="rounded-3xl p-4">
+      <LiquidGlassCard padding="16px">
         <div class="mb-4 flex items-center justify-between">
           <p class="text-sm font-semibold text-white">导航菜单</p>
           <button

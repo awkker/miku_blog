@@ -1,6 +1,6 @@
 <template>
   <div class="space-y-3">
-    <LiquidGlassCard class="rounded-3xl p-3">
+    <LiquidGlassCard padding="12px">
       <div class="flex items-center gap-3">
         <button
           type="button"

@@ -1,5 +1,5 @@
 <template>
-  <span class="tabular-nums text-[11px] tracking-wide text-white/90">{{ clockText }}</span>
+  <span class="tabular-nums text-[11px] tracking-wide text-[#39c5bb]/90">{{ clockText }}</span>
 </template>
 
 <script setup lang="ts">

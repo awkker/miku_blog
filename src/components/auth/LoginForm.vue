@@ -1,11 +1,11 @@
 <template>
-  <LiquidGlassCard class="mx-auto w-full max-w-md rounded-3xl p-6 sm:p-7">
+  <LiquidGlassCard width="100%" maxWidth="28rem" padding="28px" class="mx-auto">
     <div class="text-center">
       <p class="text-xs uppercase tracking-[0.28em] text-white/60">Miku Blog Console</p>
       <img
         src="/picture/author.jpg"
         alt="管理员头像"
-        class="mx-auto mt-5 h-20 w-20 rounded-full border border-miku/70 object-cover shadow-[0_0_24px_rgba(102,205,170,0.45)] transition duration-300 hover:scale-105"
+        class="mx-auto mt-5 h-20 w-20 rounded-full border border-miku/70 object-cover shadow-[0_0_24px_rgba(57,197,187,0.45)] transition duration-300 hover:scale-105"
       />
       <h1 class="mt-4 text-2xl font-semibold text-white">欢迎回来</h1>
       <p class="mt-1 text-sm text-white/70">仅管理员可访问后台系统</p>

@@ -1,6 +1,6 @@
 <template>
   <section class="space-y-5">
-    <LiquidGlassCard class="rounded-3xl p-6">
+    <LiquidGlassCard padding="24px">
       <h1 class="text-2xl font-semibold text-white">{{ title }}</h1>
       <p class="mt-2 text-sm text-white/75">{{ description }}</p>
     </LiquidGlassCard>
@@ -9,7 +9,7 @@
       <LiquidGlassCard
         v-for="item in cards"
         :key="item.title"
-        class="rounded-3xl p-5"
+        padding="20px"
       >
         <h2 class="text-base font-semibold text-white">{{ item.title }}</h2>
         <p class="mt-2 text-sm text-white/70">{{ item.desc }}</p>

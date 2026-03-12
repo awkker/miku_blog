@@ -1,6 +1,6 @@
 <template>
   <section class="space-y-5">
-    <LiquidGlassCard class="rounded-3xl p-6">
+    <LiquidGlassCard padding="24px">
       <h1 class="text-2xl font-semibold text-white">欢迎回来，{{ userName }}</h1>
       <p class="mt-2 text-sm text-white/75">后台已就绪，你可以继续管理文章、评论与友链。</p>
     </LiquidGlassCard>
@@ -29,7 +29,7 @@
     </div>
 
     <div class="grid gap-4 lg:grid-cols-3">
-      <LiquidGlassCard class="rounded-3xl p-5 lg:col-span-2">
+      <LiquidGlassCard padding="20px" class="lg:col-span-2">
         <h2 class="text-lg font-semibold text-white">最近动态</h2>
         <ul class="mt-4 space-y-3 text-sm text-white/80">
           <li class="rounded-2xl border border-white/20 bg-white/10 px-3 py-2">新文章草稿《Astro + Vue Islands 实战》待发布</li>
@@ -38,7 +38,7 @@
         </ul>
       </LiquidGlassCard>
 
-      <LiquidGlassCard class="rounded-3xl p-5">
+      <LiquidGlassCard padding="20px">
         <h2 class="text-lg font-semibold text-white">快捷操作</h2>
         <div class="mt-4 grid gap-2">
           <MikuButton variant="ghost" aria-label="新建文章">新建文章</MikuButton>

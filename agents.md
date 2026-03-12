@@ -27,7 +27,7 @@
 ## 🎨 视觉与 UI 约束 (核心特色)
 
 ### 主题色与字体
-- **全局变量**：必须在 CSS 根节点定义并使用 `--miku-color: rgb(102, 205, 170)` 作为核心主题色（如按钮、高亮、链接等）。
+- **全局变量**：必须在 CSS 根节点定义并使用 `--miku-color: #39c5bb` 作为核心主题色（如按钮、高亮、链接等）。
 - **字体**：排版优先使用「霞鹜文楷」(LXGW WenKai Screen)，做好字体的 Fallback 设置。
 
 ### 液态玻璃风格 (Glassmorphism)
@@ -68,3 +68,11 @@ miku-blog/
 - **安全第一**：代码中严禁硬编码数据库密码、JWT Secret 等敏感信息，必须通过环境变量 (.env) 读取。
 
 - **遇事不决查文档**：如果遇到 Hertz 或 Astro 的最新 API 变动，请优先使用 Web Search 检索最新官方文档，不要凭历史语料猜测。
+
+## 协作补充规则（强约束）
+- **严格按需求范围修改**：用户指定了文件或组件时，仅修改该范围；未经明确要求，禁止连带调整其它页面或组件。
+- **禁止“顺手优化”**：未被请求时，不要替换文案、主题风格、字体方案、布局结构，不做跨文件批量清理。
+- **LiquidGlassCard 调用约定**：
+  - 页面/业务组件层默认只允许改 `width` / `maxWidth` / `padding` / `borderRadius` 这类尺寸参数。
+  - `blur` / `contrast` / `brightness` / `saturate` / `interactive` / `cornerSoftness` / `displacementStrength` / `edgeRefractionStrength` 等效果参数，除非用户明确提出，否则禁止覆盖。
+- **视觉调参原则**：用户要求“调小/调淡/去模糊”时，只改对应参数，不改其它视觉属性。

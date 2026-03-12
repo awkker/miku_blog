@@ -1,5 +1,5 @@
 <template>
-  <LiquidGlassCard class="rounded-3xl border-red-200/50 p-6 text-center">
+  <LiquidGlassCard padding="24px" class="border-red-200/50 text-center">
     <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border border-red-200/50 bg-red-300/15 text-red-100">
       <svg viewBox="0 0 24 24" class="h-6 w-6 fill-none stroke-current stroke-[1.8]">
         <path d="M12 8v5" />

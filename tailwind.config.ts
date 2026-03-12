@@ -6,9 +6,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        miku: 'rgb(102 205 170)',
-        'miku-soft': 'rgba(102, 205, 170, 0.12)',
-        'miku-strong': 'rgba(102, 205, 170, 0.8)',
+        miku: 'rgb(57 197 187)',
+        'miku-soft': 'rgba(57, 197, 187, 0.12)',
+        'miku-strong': 'rgba(57, 197, 187, 0.8)',
       },
       fontFamily: {
         sans: ['"LXGW WenKai Screen"', '"LXGW WenKai"', '"PingFang SC"', '"Hiragino Sans GB"', '"Microsoft YaHei"', 'sans-serif'],

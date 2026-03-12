@@ -1,5 +1,5 @@
 <template>
-  <LiquidGlassCard class="rounded-3xl p-4">
+  <LiquidGlassCard padding="16px">
     <div class="animate-pulse space-y-3">
       <div class="h-4 w-2/5 rounded bg-white/25" />
       <div class="h-5 w-4/5 rounded bg-white/25" />

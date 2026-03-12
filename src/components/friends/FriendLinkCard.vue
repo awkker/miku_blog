@@ -6,7 +6,7 @@
     class="block transition duration-300 hover:scale-105"
     :aria-label="`访问友链 ${friend.name}`"
   >
-    <LiquidGlassCard class="rounded-3xl p-4 transition duration-300 hover:border-miku/45 hover:shadow-xl">
+    <LiquidGlassCard padding="16px" class="transition duration-300 hover:border-miku/45 hover:shadow-xl">
       <div class="flex items-center gap-3">
         <img
           :src="friend.avatar"
