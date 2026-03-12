@@ -1,0 +1,24 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
+import AdminSectionPlaceholder from '../../components/admin/AdminSectionPlaceholder.vue'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="评论审核 | Miku Blog" description="后台评论审核" />
+    <AdminRouteGuard />
+  </head>
+  <body>
+    <AdminLayout activeKey="comments">
+      <AdminSectionPlaceholder
+        client:load
+        module="comments"
+        title="评论审核"
+        description="这里将用于管理评论队列、举报处理与审核策略。"
+      />
+    </AdminLayout>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+---
+import BaseHead from '../components/base/BaseHead.astro'
+import LoginForm from '../components/auth/LoginForm.vue'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="登录 | Miku Blog" description="Miku Blog 后台登录入口" />
+    <style>
+      html.auth-checking body {
+        opacity: 0;
+      }
+
+      body {
+        transition: opacity 0.22s ease;
+      }
+    </style>
+    <script is:inline>
+      document.documentElement.classList.add('auth-checking');
+      try {
+        const token = window.localStorage.getItem('miku_blog_token');
+        if (token) {
+          window.location.replace('/admin');
+        }
+      } finally {
+        document.documentElement.classList.remove('auth-checking');
+      }
+    </script>
+  </head>
+  <body class="min-h-screen bg-slate-950 text-white">
+    <main class="relative min-h-screen overflow-hidden px-4 py-10">
+      <div class="absolute inset-0 bg-[url('/picture/bloglist.jpg')] bg-cover bg-center bg-no-repeat" />
+      <div class="absolute inset-0 bg-gradient-to-br from-slate-950/65 via-slate-900/60 to-slate-950/85" />
+      <div class="absolute inset-0 backdrop-blur-[2px]" />
+
+      <div class="relative z-10 flex min-h-screen items-center justify-center">
+        <LoginForm client:load />
+      </div>
+    </main>
+  </body>
+</html>

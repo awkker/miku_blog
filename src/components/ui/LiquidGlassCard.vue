@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
-import { createLiquidGlass, type LiquidGlassController } from '../utils/liquidGlass'
+import { createLiquidGlass, type LiquidGlassController } from '../../utils/liquidGlass'
 
 interface Props {
   borderRadius?: number

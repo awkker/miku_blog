@@ -1,0 +1,55 @@
+---
+import BaseHead from '../components/base/BaseHead.astro'
+import FriendsGrid from '../components/friends/FriendsGrid.vue'
+import GlobalToast from '../components/ui/GlobalToast.vue'
+import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="友情链接 | Miku Blog" description="Miku Blog 友情链接页面" />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-white">
+    <main class="relative min-h-screen overflow-hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,rgba(102,205,170,0.22),transparent_38%),radial-gradient(circle_at_84%_12%,rgba(59,130,246,0.2),transparent_32%),linear-gradient(165deg,rgba(15,23,42,1),rgba(2,6,23,1))]" />
+
+      <div class="relative mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
+        <LiquidGlassCard class="rounded-3xl p-7">
+          <h1 class="text-3xl font-semibold text-white">友情链接</h1>
+          <div class="mt-3 space-y-2 text-sm leading-relaxed text-white/75">
+            <p>欢迎和本站交换友链。请保持站点长期可访问，内容积极、持续更新。</p>
+            <p>若希望交换，请先添加本站链接，再通过后续开放的申请入口提交信息。</p>
+          </div>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <a
+              href="/blog"
+              class="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white transition hover:border-miku/40 hover:text-miku sm:text-sm"
+              aria-label="前往博客首页"
+            >
+              博客首页
+            </a>
+            <a
+              href="/guestbook"
+              class="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white transition hover:border-miku/40 hover:text-miku sm:text-sm"
+              aria-label="前往留言板"
+            >
+              留言板
+            </a>
+            <a
+              href="/login"
+              class="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white transition hover:border-miku/40 hover:text-miku sm:text-sm"
+              aria-label="前往登录页面"
+            >
+              后台登录
+            </a>
+          </div>
+        </LiquidGlassCard>
+
+        <FriendsGrid client:load />
+      </div>
+
+      <GlobalToast client:load />
+    </main>
+  </body>
+</html>

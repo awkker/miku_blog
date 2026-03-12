@@ -1,12 +1,13 @@
 ---
 import { Image } from 'astro:assets'
 import type { CollectionEntry } from 'astro:content'
-import BaseHead from '../components/BaseHead.astro'
-import LikePanel from '../components/LikePanel.vue'
-import LiquidGlassCard from '../components/LiquidGlassCard.vue'
-import MarkdownCodeEnhancer from '../components/MarkdownCodeEnhancer.vue'
-import ReadingToc from '../components/ReadingToc.vue'
-import FormattedDate from '../components/FormattedDate.astro'
+import BaseHead from '../components/base/BaseHead.astro'
+import BlogTopNav from '../components/blog/BlogTopNav.astro'
+import LikePanel from '../components/blog/LikePanel.vue'
+import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
+import MarkdownCodeEnhancer from '../components/blog/MarkdownCodeEnhancer.vue'
+import ReadingToc from '../components/blog/ReadingToc.vue'
+import FormattedDate from '../components/base/FormattedDate.astro'
 
 type Props = CollectionEntry<'blog'>['data'] & {
   headings?: Array<{ depth: number; slug: string; text: string }>
@@ -23,15 +24,7 @@ const { title, description, pubDate, updatedDate, heroImage, headings = [] } = A
   <body class="bg-slate-100 text-slate-800">
     <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(102,205,170,0.18),transparent_45%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)]" />
 
-    <header class="sticky top-0 z-20 border-b border-white/30 bg-white/45 backdrop-blur-xl">
-      <nav class="mx-auto flex h-14 w-full max-w-[1320px] items-center justify-between px-4 text-sm text-slate-700">
-        <a href="/" class="font-semibold tracking-[0.18em]">SNOWYKAMI</a>
-        <div class="flex items-center gap-4">
-          <a href="/blog" class="transition hover:text-miku">博客首页</a>
-          <a href="/about" class="transition hover:text-miku">关于</a>
-        </div>
-      </nav>
-    </header>
+    <BlogTopNav currentPath={Astro.url.pathname} />
 
     <main class="mx-auto w-full max-w-[1400px] px-4 pb-20 pt-10">
       <div class="grid grid-cols-1 gap-6 xl:grid-cols-[84px_minmax(0,1fr)_280px]">

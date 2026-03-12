@@ -1,0 +1,54 @@
+---
+import BaseHead from '../components/base/BaseHead.astro'
+import GlobalToast from '../components/ui/GlobalToast.vue'
+import GuestbookBoard from '../components/guestbook/GuestbookBoard.vue'
+import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="留言板 | Miku Blog" description="Miku Blog 访客留言板" />
+  </head>
+  <body class="min-h-screen bg-slate-950 text-white">
+    <main class="relative min-h-screen overflow-hidden">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_8%_12%,rgba(102,205,170,0.2),transparent_40%),radial-gradient(circle_at_90%_15%,rgba(125,211,252,0.2),transparent_35%),linear-gradient(160deg,rgba(15,23,42,1),rgba(2,6,23,1))]" />
+
+      <div class="relative mx-auto max-w-6xl space-y-8 px-4 py-10 sm:px-6 lg:px-8">
+        <LiquidGlassCard class="rounded-3xl p-7">
+          <h1 class="text-3xl font-semibold text-white">访客留言板</h1>
+          <p class="mt-3 max-w-3xl text-sm leading-relaxed text-white/75">
+            这里是站点的公共交流区。欢迎留下你的想法、建议或一句路过打卡。我们会认真阅读每一条留言。
+          </p>
+          <div class="mt-5 flex flex-wrap gap-2">
+            <a
+              href="/blog"
+              class="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white transition hover:border-miku/40 hover:text-miku sm:text-sm"
+              aria-label="前往博客首页"
+            >
+              博客首页
+            </a>
+            <a
+              href="/friends"
+              class="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white transition hover:border-miku/40 hover:text-miku sm:text-sm"
+              aria-label="前往友情链接页面"
+            >
+              友情链接
+            </a>
+            <a
+              href="/login"
+              class="rounded-xl border border-white/30 bg-white/15 px-3 py-1.5 text-xs text-white transition hover:border-miku/40 hover:text-miku sm:text-sm"
+              aria-label="前往登录页面"
+            >
+              后台登录
+            </a>
+          </div>
+        </LiquidGlassCard>
+
+        <GuestbookBoard client:load />
+      </div>
+
+      <GlobalToast client:load />
+    </main>
+  </body>
+</html>

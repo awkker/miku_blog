@@ -1,13 +1,13 @@
 # Agent Guide (miku-blog-ai)
 
-生成或修改代码前，必须严格遵守以下架构规范与约束。
+本仓库当前以本指南为单一事实来源（Single Source of Truth）。生成或修改代码前，必须严格遵守以下架构规范与约束。
 
 ## 🛠 技术栈硬约束
 
 ### 前端生态 (Frontend)
-- **包管理器**：只用 `npm` 
-  - **允许**：`npm install` / `npm dev` / `npm build`
-  - **禁止**：使用 `pnpm` 或 `yarn`，坚决避免 lockfile 冲突。
+- **包管理器**：只用 `pnpm` (或 `bun`，保持项目内统一)。
+  - **允许**：`pnpm install` / `pnpm dev` / `pnpm build`
+  - **禁止**：使用 `npm` 或 `yarn`，坚决避免 lockfile 冲突。
 - **核心框架**：Astro 负责路由与静态页面生成 (SSG)，Vue.js 3 仅作为互动岛屿 (Islands) 按需加载。
 - **状态管理**：只用 Nano Stores。
   - **禁止**：引入 Pinia 或 Vuex。所有跨 Astro/Vue 的状态（如壁纸设定、暗黑模式）必须通过 Nano Stores 共享。
@@ -33,7 +33,10 @@
 ### 液态玻璃风格 (Glassmorphism)
 - **设计规范**：UI 组件（如导航栏、评论区卡片、动态壁纸控制面板）必须采用“液态玻璃”拟物风格。
 - **Tailwind 实现要求**：
-  - 使用：frontend/src/components/LiquidGlassCard.vue和frontend/src/utils/liquidGlass.ts
+  - 必须包含背景模糊：`backdrop-blur-md` 或 `backdrop-blur-lg`。
+  - 必须包含半透明背景：使用 `bg-white/10` 到 `bg-white/30` (暗黑模式下为 `bg-black/20` 等)。
+  - 必须包含高光边框：`border border-white/20`。
+  - 必须包含柔和阴影：`shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]` 或类似柔和过渡。
   - **禁止**：使用扁平化 (Flat Design) 的纯色不透明背景卡片。
 
 ## ⚙️ 业务与目录结构约束
@@ -62,6 +65,6 @@ miku-blog/
 - **先思考后写代码**：遇到复杂交互或全栈打通逻辑，先输出实现思路和步骤，等待用户确认后再生成代码。
 - **只做必要修改**：不要随意重构与当前需求无关的历史代码。
 
-## 安全与文档
 - **安全第一**：代码中严禁硬编码数据库密码、JWT Secret 等敏感信息，必须通过环境变量 (.env) 读取。
+
 - **遇事不决查文档**：如果遇到 Hertz 或 Astro 的最新 API 变动，请优先使用 Web Search 检索最新官方文档，不要凭历史语料猜测。

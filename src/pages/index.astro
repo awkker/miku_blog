@@ -1,26 +1,26 @@
 ---
-import BaseHead from '../components/BaseHead.astro'
-import LiquidGlassCard from '../components/LiquidGlassCard.vue'
-import SystemClock from '../components/SystemClock.vue'
-import TypewriterSubtitle from '../components/TypewriterSubtitle.vue'
+import BaseHead from '../components/base/BaseHead.astro'
+import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
+import SystemClock from '../components/home/SystemClock.vue'
+import TypewriterSubtitle from '../components/home/TypewriterSubtitle.vue'
 
 const dockItems = [
   { name: '访客', href: '/about', icon: 'person' },
   { name: '博客', href: '/blog', icon: 'book' },
-  { name: '音乐', href: '/blog', icon: 'music' },
-  { name: '相册', href: '/blog', icon: 'image' },
-  { name: '终端', href: '/blog', icon: 'terminal' },
+  { name: '留言', href: '/guestbook', icon: 'message' },
+  { name: '友链', href: '/friends', icon: 'link' },
+  { name: '登录', href: '/login', icon: 'login' },
+  { name: '后台', href: '/admin', icon: 'admin' },
 ]
 
 const iconPaths: Record<string, string> = {
   person:
     'M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.87 0-7 2.01-7 4.5V21h14v-2.5c0-2.49-3.13-4.5-7-4.5z',
   book: 'M18 2H8a3 3 0 0 0-3 3v14a3 3 0 0 1 3-3h10V2zm2 16H8a1 1 0 0 0-1 1v1h13v-2z',
-  music:
-    'M16 3v11.55A3.98 3.98 0 0 0 14 14a4 4 0 1 0 4 4V7h4V3h-6zM7 6v8.55A3.98 3.98 0 0 0 5 14a4 4 0 1 0 4 4V6H7z',
-  image:
-    'M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14h18zm-2-2H5l3.5-4.5 2.5 3 3.5-4.5L19 17zM8 9a2 2 0 1 0 0.001-3.999A2 2 0 0 0 8 9z',
-  terminal: 'M4 5h16v14H4V5zm3 3l2 2-2 2m4 1h5',
+  message: 'M4 5h16a2 2 0 012 2v9a2 2 0 01-2 2H8l-4 3v-3H4a2 2 0 01-2-2V7a2 2 0 012-2zm4 5h8M8 13h6',
+  link: 'M10 13a5 5 0 007.07 0l2.12-2.12a5 5 0 10-7.07-7.07L10 5M14 11a5 5 0 00-7.07 0L4.81 13.12a5 5 0 007.07 7.07L14 19',
+  login: 'M10 17l5-5-5-5M15 12H3M17 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2',
+  admin: 'M4 5h16v14H4V5zm4 3h8M8 11h8M8 15h5',
 }
 ---
 
@@ -70,20 +70,20 @@ const iconPaths: Record<string, string> = {
       </section>
 
       <div class="absolute bottom-4 left-1/2 z-20 -translate-x-1/2">
-        <LiquidGlassCard client:load interactive={true} class="rounded-2xl px-4 py-3">
-          <ul class="flex items-end gap-2">
+        <LiquidGlassCard client:load interactive={true} class="rounded-2xl px-2 py-3 sm:px-4">
+          <ul class="flex items-end gap-1.5 sm:gap-2">
             {
               dockItems.map((item, index) => (
                 <li>
                   <a
                     href={item.href}
                     class:list={[
-                      'group flex w-16 flex-col items-center gap-1 rounded-2xl py-2 text-xs text-white/90 transition duration-300 hover:scale-125 hover:bg-white/20',
+                      'group flex w-12 flex-col items-center gap-1 rounded-2xl py-2 text-[10px] text-white/90 transition duration-300 hover:scale-110 hover:bg-white/20 sm:w-16 sm:text-xs sm:hover:scale-125',
                       index === 1 && 'animate-dock-float',
                     ]}
                   >
-                    <span class="flex h-9 w-9 items-center justify-center rounded-xl border border-white/30 bg-white/15">
-                      <svg viewBox="0 0 24 24" class="h-5 w-5 fill-none stroke-current stroke-[1.5]">
+                    <span class="flex h-8 w-8 items-center justify-center rounded-xl border border-white/30 bg-white/15 sm:h-9 sm:w-9">
+                      <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current stroke-[1.5] sm:h-5 sm:w-5">
                         <path d={iconPaths[item.icon]} />
                       </svg>
                     </span>

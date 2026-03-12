@@ -1,62 +1,70 @@
-# Astro Starter Kit: Blog
+# NanaMiku Blog Frontend
 
-```sh
-npm create astro@latest -- --template blog
-```
+基于 Astro + Vue 3 Islands + Nano Stores + Tailwind CSS 的前端工程。
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 技术栈
+- Astro 6
+- Vue 3 (Islands)
+- Nano Stores
+- Tailwind CSS
 
-Features:
-
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
+## 目录结构
 
 ```text
+frontend/
 ├── public/
 ├── src/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
+│   ├── assets/
+│   ├── components/
+│   │   ├── admin/      # 后台相关组件（侧栏、顶栏、仪表盘等）
+│   │   ├── auth/       # 登录域组件
+│   │   ├── base/       # BaseHead/日期等基础组件
+│   │   ├── blog/       # 博客阅读与总览组件
+│   │   ├── friends/    # 友链页组件
+│   │   ├── guestbook/  # 留言板组件
+│   │   ├── home/       # 首页专用交互组件
+│   │   ├── ui/         # 通用 UI 组件（按钮、输入、空态、玻璃卡等）
+│   │   └── README.md   # 组件职责说明
+│   ├── content/
+│   ├── layouts/
+│   ├── pages/
+│   │   ├── admin/
+│   │   │   ├── index.astro
+│   │   │   ├── posts.astro
+│   │   │   ├── comments.astro
+│   │   │   └── friends.astro
+│   │   ├── blog/
+│   │   ├── login.astro
+│   │   ├── guestbook.astro
+│   │   └── friends.astro
+│   ├── stores/         # auth/ui/loading/guestbook/friends
+│   ├── styles/
+│   └── utils/
 ├── astro.config.mjs
-├── README.md
 ├── package.json
 └── tsconfig.json
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 关键说明
+- `src/stores/auth.ts`: 登录态、登录/登出、localStorage 同步。
+- `src/components/ui/LiquidGlassCard.vue`: 项目统一玻璃风容器。
+- `src/components/admin/AdminRouteGuard.astro`: 后台页面前置鉴权脚本。
+- `src/layouts/AdminLayout.astro`: 后台统一壳层。
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## 本地开发
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
+```bash
+npm install
+npm run dev
+```
 
-Any static assets, like images, can be placed in the `public/` directory.
+## 构建
 
-## 🧞 Commands
+```bash
+npm run build
+npm run preview
+```
 
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
-
-## Credit
-
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+## 当前登录凭据（前端 mock）
+- 用户名: `admin`
+- 密码: `miku1234`

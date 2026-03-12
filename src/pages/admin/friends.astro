@@ -1,0 +1,24 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
+import AdminSectionPlaceholder from '../../components/admin/AdminSectionPlaceholder.vue'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="友链管理 | Miku Blog" description="后台友链管理" />
+    <AdminRouteGuard />
+  </head>
+  <body>
+    <AdminLayout activeKey="friends">
+      <AdminSectionPlaceholder
+        client:load
+        module="friends"
+        title="友链管理"
+        description="这里将用于管理友链展示、申请审核和站点健康检查。"
+      />
+    </AdminLayout>
+  </body>
+</html>
