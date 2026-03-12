@@ -1,7 +1,7 @@
 <template>
   <aside class="hidden w-64 shrink-0 lg:block">
     <LiquidGlassCard padding="16px" class="sticky top-6">
-      <p class="px-2 text-xs uppercase tracking-[0.2em] text-white/60">Nanamiku Admin</p>
+      <p class="px-2 text-xs uppercase tracking-[0.2em] text-slate-700">Nanamiku Admin</p>
 
       <nav class="mt-4 space-y-1">
         <a
@@ -11,7 +11,7 @@
           class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition duration-300"
           :class="item.key === activeKey
             ? 'border border-miku/40 bg-miku-soft text-miku'
-            : 'text-white/80 hover:bg-white/20 hover:text-white'"
+            : 'text-slate-800 hover:bg-white/45 hover:text-slate-900'"
           :aria-label="item.label"
         >
           <span class="h-2 w-1 rounded-full" :class="item.key === activeKey ? 'bg-miku' : 'bg-transparent'" />
@@ -36,10 +36,10 @@
     >
       <LiquidGlassCard padding="16px">
         <div class="mb-4 flex items-center justify-between">
-          <p class="text-sm font-semibold text-white">导航菜单</p>
+          <p class="text-sm font-semibold text-slate-900">导航菜单</p>
           <button
             type="button"
-            class="rounded-xl border border-white/30 bg-white/20 p-1.5 text-white transition hover:bg-white/30"
+            class="rounded-xl border border-slate-300/80 bg-white/50 p-1.5 text-slate-900 transition hover:bg-white/75"
             aria-label="关闭导航菜单"
             @click="setSidebarOpen(false)"
           >
@@ -57,7 +57,7 @@
             class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition duration-300"
             :class="item.key === activeKey
               ? 'border border-miku/40 bg-miku-soft text-miku'
-              : 'text-white/80 hover:bg-white/20 hover:text-white'"
+              : 'text-slate-800 hover:bg-white/45 hover:text-slate-900'"
             :aria-label="item.label"
             @click="setSidebarOpen(false)"
           >

@@ -12,8 +12,8 @@ interface Props {
 const { title = 'Admin Control Center', subtitle = 'Miku Blog', activeKey = 'dashboard' } = Astro.props
 ---
 
-<main class="relative min-h-screen overflow-hidden bg-slate-950 text-white">
-  <div class="absolute inset-0 bg-[radial-gradient(circle_at_12%_15%,rgba(57,197,187,0.25),transparent_36%),radial-gradient(circle_at_85%_10%,rgba(56,189,248,0.18),transparent_32%),linear-gradient(160deg,rgba(15,23,42,0.96),rgba(2,6,23,1))]" />
+<main class="relative min-h-screen overflow-hidden text-slate-900">
+  <div class="absolute inset-0 bg-[url('/picture/ui.png')] bg-cover bg-center bg-no-repeat" />
   <div class="relative mx-auto flex max-w-[1400px] gap-5 px-4 py-6 sm:px-6 lg:px-8">
     <AdminSidebar client:load active-key={activeKey} />
 

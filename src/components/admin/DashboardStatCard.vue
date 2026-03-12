@@ -2,8 +2,8 @@
   <LiquidGlassCard padding="20px">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <p class="text-xs uppercase tracking-[0.2em] text-white/60">{{ label }}</p>
-        <p class="mt-2 font-mono text-3xl font-semibold text-white">{{ value }}</p>
+        <p class="text-xs uppercase tracking-[0.2em] text-slate-600">{{ label }}</p>
+        <p class="mt-2 font-mono text-3xl font-semibold text-slate-900">{{ value }}</p>
       </div>
       <span class="rounded-xl border border-white/30 bg-white/20 p-2 text-miku" aria-hidden="true">
         <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current stroke-[1.8]">
@@ -15,7 +15,7 @@
     <p
       v-if="trend"
       class="mt-3 text-xs"
-      :class="trend.startsWith('-') ? 'text-red-200' : 'text-emerald-200'"
+      :class="trend.startsWith('-') ? 'text-red-700' : 'text-emerald-700'"
     >
       {{ trend }}
     </p>

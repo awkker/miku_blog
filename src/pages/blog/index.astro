@@ -26,12 +26,12 @@ const hotList = posts.slice(0, 7).map((post, index) => ({
     <BaseHead title="Miku Blog" description="博客主页" />
   </head>
   <body class="bg-slate-100 text-slate-800">
-    <div class="relative min-h-screen">
+    <div class="relative min-h-screen pt-14">
       <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(57,197,187,0.22),transparent_45%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]" />
       <BlogTopNav currentPath={Astro.url.pathname} />
 
       <header class="relative h-[40vh] min-h-[280px] overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=80')] bg-cover bg-center" />
+        <div class="absolute inset-0 bg-[url('/picture/bloglist.jpg')] bg-cover bg-center bg-no-repeat" />
         <div class="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/25 to-white/90" />
         <div class="relative z-10 flex h-full flex-col items-center justify-center gap-4 text-center text-white">
           <p class="rounded-full bg-white/20 px-4 py-1 text-xs tracking-[0.26em] backdrop-blur">MIKU SPACE</p>
@@ -40,7 +40,7 @@ const hotList = posts.slice(0, 7).map((post, index) => ({
         </div>
       </header>
 
-      <main class="mx-auto -mt-14 grid w-full max-w-[1320px] grid-cols-1 gap-8 px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <main class="mx-auto mt-6 grid w-full max-w-[1320px] grid-cols-1 gap-8 px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section class="space-y-6">
           <div class="glass-layer rounded-2xl p-3">
             <div class="flex flex-wrap gap-2">

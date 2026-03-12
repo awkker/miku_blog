@@ -1,8 +1,8 @@
 <template>
   <section class="space-y-5">
     <LiquidGlassCard padding="24px">
-      <h1 class="text-2xl font-semibold text-white">{{ title }}</h1>
-      <p class="mt-2 text-sm text-white/75">{{ description }}</p>
+      <h1 class="text-2xl font-semibold text-slate-900">{{ title }}</h1>
+      <p class="mt-2 text-sm text-slate-700">{{ description }}</p>
     </LiquidGlassCard>
 
     <div class="grid gap-4 lg:grid-cols-3">
@@ -11,8 +11,8 @@
         :key="item.title"
         padding="20px"
       >
-        <h2 class="text-base font-semibold text-white">{{ item.title }}</h2>
-        <p class="mt-2 text-sm text-white/70">{{ item.desc }}</p>
+        <h2 class="text-base font-semibold text-slate-900">{{ item.title }}</h2>
+        <p class="mt-2 text-sm text-slate-700">{{ item.desc }}</p>
       </LiquidGlassCard>
     </div>
   </section>

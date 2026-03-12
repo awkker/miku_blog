@@ -6,8 +6,8 @@
       <span class="h-3 w-3 rounded-full bg-[#28c840]" />
     </div>
     <div class="min-w-0 text-center">
-      <p class="truncate text-sm font-semibold text-white/90">{{ title }}</p>
-      <p v-if="subtitle" class="truncate text-xs text-white/60">{{ subtitle }}</p>
+      <p class="truncate text-sm font-semibold text-slate-900">{{ title }}</p>
+      <p v-if="subtitle" class="truncate text-xs text-slate-600">{{ subtitle }}</p>
     </div>
     <div class="h-3 w-14" aria-hidden="true" />
   </div>

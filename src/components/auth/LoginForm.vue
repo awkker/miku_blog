@@ -1,32 +1,32 @@
 <template>
   <LiquidGlassCard width="100%" maxWidth="28rem" padding="28px" class="mx-auto">
     <div class="text-center">
-      <p class="text-xs uppercase tracking-[0.28em] text-white/60">Miku Blog Console</p>
+      <p class="text-xs uppercase tracking-[0.28em] text-slate-700">Miku Blog Console</p>
       <img
         src="/picture/author.jpg"
         alt="管理员头像"
         class="mx-auto mt-5 h-20 w-20 rounded-full border border-miku/70 object-cover shadow-[0_0_24px_rgba(57,197,187,0.45)] transition duration-300 hover:scale-105"
       />
-      <h1 class="mt-4 text-2xl font-semibold text-white">欢迎回来</h1>
-      <p class="mt-1 text-sm text-white/70">仅管理员可访问后台系统</p>
+      <h1 class="mt-4 text-2xl font-semibold text-slate-900">欢迎回来</h1>
+      <p class="mt-1 text-sm text-slate-700">仅管理员可访问后台系统</p>
       <div class="mt-4 flex flex-wrap justify-center gap-2">
         <a
           href="/blog"
-          class="rounded-xl border border-white/30 bg-white/15 px-3 py-1 text-xs text-white transition hover:border-miku/40 hover:text-miku"
+          class="rounded-xl border border-slate-300/80 bg-white/55 px-3 py-1 text-xs text-slate-900 transition hover:border-miku/40 hover:text-miku"
           aria-label="前往博客首页"
         >
           博客首页
         </a>
         <a
           href="/guestbook"
-          class="rounded-xl border border-white/30 bg-white/15 px-3 py-1 text-xs text-white transition hover:border-miku/40 hover:text-miku"
+          class="rounded-xl border border-slate-300/80 bg-white/55 px-3 py-1 text-xs text-slate-900 transition hover:border-miku/40 hover:text-miku"
           aria-label="前往留言板"
         >
           留言板
         </a>
         <a
           href="/friends"
-          class="rounded-xl border border-white/30 bg-white/15 px-3 py-1 text-xs text-white transition hover:border-miku/40 hover:text-miku"
+          class="rounded-xl border border-slate-300/80 bg-white/55 px-3 py-1 text-xs text-slate-900 transition hover:border-miku/40 hover:text-miku"
           aria-label="前往友链页面"
         >
           友情链接
@@ -64,7 +64,7 @@
         <template #trailing>
           <button
             type="button"
-            class="rounded-lg p-1 text-white/75 transition duration-300 hover:bg-white/15 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-miku/70"
+            class="rounded-lg p-1 text-slate-600 transition duration-300 hover:bg-white/30 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-miku/70"
             :aria-label="showPassword ? '隐藏密码' : '显示密码'"
             @click="showPassword = !showPassword"
           >
@@ -84,7 +84,7 @@
 
       <p
         v-if="formError"
-        class="flex items-center gap-2 rounded-xl border border-red-200/90 bg-red-500/35 px-3 py-2 text-sm font-medium text-white"
+        class="flex items-center gap-2 rounded-xl border border-red-300/90 bg-red-100/80 px-3 py-2 text-sm font-medium text-slate-900"
         role="status"
         aria-live="polite"
       >
@@ -97,7 +97,7 @@
       </p>
       <p
         v-if="successMessage"
-        class="flex items-center gap-2 rounded-xl border border-emerald-200/80 bg-emerald-500/35 px-3 py-2 text-sm font-medium text-white"
+        class="flex items-center gap-2 rounded-xl border border-emerald-300/85 bg-emerald-100/80 px-3 py-2 text-sm font-medium text-slate-900"
         role="status"
         aria-live="polite"
       >
@@ -117,10 +117,10 @@
         {{ submitting ? '登录中...' : '登录' }}
       </MikuButton>
 
-      <p class="text-center text-xs text-white/70" aria-live="polite">
+      <p class="text-center text-xs text-slate-700" aria-live="polite">
         {{ submitting ? '正在验证账号信息…' : '请使用有效管理员账号登录后台' }}
       </p>
-      <p class="text-center text-[11px] text-white/55">
+      <p class="text-center text-[11px] text-slate-600">
         测试账号：admin / miku1234
       </p>
     </form>

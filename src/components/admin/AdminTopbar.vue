@@ -4,7 +4,7 @@
       <div class="flex items-center gap-3">
         <button
           type="button"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-white/30 bg-white/15 text-white transition duration-300 hover:bg-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-miku/70 lg:hidden"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-300/80 bg-white/60 text-slate-900 transition duration-300 hover:bg-white/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-miku/70 lg:hidden"
           aria-label="打开导航菜单"
           @click="toggleSidebar"
         >
@@ -20,18 +20,19 @@
         <div class="hidden items-center gap-2 md:flex">
           <a
             href="/"
-            class="inline-flex items-center justify-center rounded-2xl border border-white/30 bg-white/15 px-3 py-2 text-sm text-white transition duration-300 hover:border-miku/40 hover:text-miku"
+            class="inline-flex items-center justify-center rounded-2xl border border-slate-300/80 bg-white/60 px-3 py-2 text-sm text-slate-900 transition duration-300 hover:border-miku/40 hover:text-miku"
             aria-label="前往前台首页"
           >
             前台首页
           </a>
-          <div class="rounded-2xl border border-white/30 bg-white/15 px-3 py-2 text-right">
-            <p class="text-sm font-semibold text-white">{{ userName }}</p>
-            <p class="text-xs text-white/60">管理员</p>
+          <div class="rounded-2xl border border-slate-300/80 bg-white/60 px-3 py-2 text-right">
+            <p class="text-sm font-semibold text-slate-900">{{ userName }}</p>
+            <p class="text-xs text-slate-600">管理员</p>
           </div>
 
           <MikuButton
             variant="ghost"
+            class="!border-slate-300/80 !bg-white/65 !text-slate-900 hover:!bg-white/80"
             aria-label="退出登录"
             @click="handleLogout"
           >
