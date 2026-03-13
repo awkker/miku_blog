@@ -14,7 +14,11 @@
         </button>
 
         <div class="min-w-0 flex-1">
-          <MacWindowToolbar title="Admin Control Center" subtitle="Miku Blog" />
+          <nav class="flex items-center gap-1.5 text-sm" aria-label="面包屑导航">
+            <span class="text-slate-500">Nanamiku Admin</span>
+            <span class="text-slate-400">/</span>
+            <span class="font-semibold text-slate-900">{{ pageTitle }}</span>
+          </nav>
         </div>
 
         <div class="hidden items-center gap-2 md:flex">
@@ -52,8 +56,15 @@ import { authState, hydrateAuth, logout } from '../../stores/auth'
 import { useStore } from '@nanostores/vue'
 import { toggleSidebar } from '../../stores/ui'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
-import MacWindowToolbar from './MacWindowToolbar.vue'
 import MikuButton from '../ui/MikuButton.vue'
+
+interface Props {
+  pageTitle?: string
+}
+
+withDefaults(defineProps<Props>(), {
+  pageTitle: '仪表盘',
+})
 
 const auth = useStore(authState)
 const mounted = ref(false)

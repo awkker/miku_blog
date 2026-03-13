@@ -5,9 +5,9 @@
 ## 🛠 技术栈硬约束
 
 ### 前端生态 (Frontend)
-- **包管理器**：只用 `pnpm` (或 `bun`，保持项目内统一)。
-  - **允许**：`pnpm install` / `pnpm dev` / `pnpm build`
-  - **禁止**：使用 `npm` 或 `yarn`，坚决避免 lockfile 冲突。
+- **包管理器**：只用 `npm`
+  - **允许**：`npm install` / `npm run dev` / `npm run build`
+  - **禁止**：使用 `pnpm` 或 `yarn`，坚决避免 lockfile 冲突。
 - **核心框架**：Astro 负责路由与静态页面生成 (SSG)，Vue.js 3 仅作为互动岛屿 (Islands) 按需加载。
 - **状态管理**：只用 Nano Stores。
   - **禁止**：引入 Pinia 或 Vuex。所有跨 Astro/Vue 的状态（如壁纸设定、暗黑模式）必须通过 Nano Stores 共享。
@@ -26,18 +26,15 @@
 
 ## 🎨 视觉与 UI 约束 (核心特色)
 
-### 主题色与字体
-- **全局变量**：必须在 CSS 根节点定义并使用 `--miku-color: #39c5bb` 作为核心主题色（如按钮、高亮、链接等）。
-- **字体**：排版优先使用「霞鹜文楷」(LXGW WenKai Screen)，做好字体的 Fallback 设置。
+### 主题色与字体 
+- **全局色彩系统**：
+  - **主品牌色**：必须使用 `--miku-color: #39c5bb`（初音绿/水蓝色）作为核心交互色（激活状态、主要按钮等）。
+  - **辅助/点缀色**：引入薰衣草色`#c084fc`，用于次要高亮、图表对比色或渐变过渡，营造轻赛博/蒸汽波质感。
+- **图表库约束**：后台数据可视化统一使用 Apache ECharts（通过 `vue-echarts` 包装接入 Vue 3），保持图表风格与主题色一致。
+- **符号约束**：不能使用emoji表情，一切符号必须使用Unicode字符。
 
 ### 液态玻璃风格 (Glassmorphism)
 - **设计规范**：UI 组件（如导航栏、评论区卡片、动态壁纸控制面板）必须采用“液态玻璃”拟物风格。
-- **Tailwind 实现要求**：
-  - 必须包含背景模糊：`backdrop-blur-md` 或 `backdrop-blur-lg`。
-  - 必须包含半透明背景：使用 `bg-white/10` 到 `bg-white/30` (暗黑模式下为 `bg-black/20` 等)。
-  - 必须包含高光边框：`border border-white/20`。
-  - 必须包含柔和阴影：`shadow-[0_8px_32px_0_rgba(31,38,135,0.37)]` 或类似柔和过渡。
-  - **禁止**：使用扁平化 (Flat Design) 的纯色不透明背景卡片。
 
 ## ⚙️ 业务与目录结构约束
 

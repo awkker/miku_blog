@@ -1,7 +1,7 @@
 ---
 import BaseHead from '../../components/base/BaseHead.astro'
 import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
-import AdminSectionPlaceholder from '../../components/admin/AdminSectionPlaceholder.vue'
+import AdminCommentsManager from '../../components/admin/AdminCommentsManager.vue'
 import AdminLayout from '../../layouts/AdminLayout.astro'
 ---
 
@@ -12,13 +12,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro'
     <AdminRouteGuard />
   </head>
   <body>
-    <AdminLayout activeKey="comments">
-      <AdminSectionPlaceholder
-        client:load
-        module="comments"
-        title="评论审核"
-        description="这里将用于管理评论队列、举报处理与审核策略。"
-      />
+    <AdminLayout activeKey="comments" pageTitle="评论审核">
+      <AdminCommentsManager client:load />
     </AdminLayout>
   </body>
 </html>

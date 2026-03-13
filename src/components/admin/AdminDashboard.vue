@@ -28,6 +28,11 @@
       </template>
     </div>
 
+    <div class="grid gap-4 lg:grid-cols-2">
+      <DashboardChart title="近 7 日浏览量 / 评论趋势" />
+      <DashboardChart title="近 7 日点赞趋势" />
+    </div>
+
     <div class="grid gap-4 lg:grid-cols-3">
       <LiquidGlassCard padding="20px" class="lg:col-span-2">
         <h2 class="text-lg font-semibold text-slate-900">最近动态</h2>
@@ -56,6 +61,7 @@ import { computed, onMounted, ref } from 'vue'
 
 import { authState, hydrateAuth } from '../../stores/auth'
 import { setScopeStatus } from '../../stores/loading'
+import DashboardChart from './DashboardChart.vue'
 import DashboardStatCard from './DashboardStatCard.vue'
 import ErrorState from '../ui/ErrorState.vue'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'

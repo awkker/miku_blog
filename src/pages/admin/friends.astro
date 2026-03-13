@@ -1,7 +1,7 @@
 ---
 import BaseHead from '../../components/base/BaseHead.astro'
 import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
-import AdminSectionPlaceholder from '../../components/admin/AdminSectionPlaceholder.vue'
+import AdminFriendsManager from '../../components/admin/AdminFriendsManager.vue'
 import AdminLayout from '../../layouts/AdminLayout.astro'
 ---
 
@@ -12,13 +12,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro'
     <AdminRouteGuard />
   </head>
   <body>
-    <AdminLayout activeKey="friends">
-      <AdminSectionPlaceholder
-        client:load
-        module="friends"
-        title="友链管理"
-        description="这里将用于管理友链展示、申请审核和站点健康检查。"
-      />
+    <AdminLayout activeKey="friends" pageTitle="友链管理">
+      <AdminFriendsManager client:load />
     </AdminLayout>
   </body>
 </html>
