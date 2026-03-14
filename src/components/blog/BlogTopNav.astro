@@ -32,7 +32,10 @@ function isActive(href: string) {
 }
 ---
 
-<header class="fixed inset-x-0 top-0 z-50 border-b border-white/50 bg-white/62 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-2xl backdrop-saturate-150">
+<header
+  data-blog-topnav
+  class="blog-top-nav fixed inset-x-0 top-0 z-50 border-b border-white/50 bg-white/62 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300"
+>
   <nav class="mx-auto flex h-14 w-full max-w-[1320px] items-center justify-between gap-3 px-4 text-sm text-slate-700">
     <a href="/" class="shrink-0 font-semibold tracking-[0.18em]">NANAMIKU BLOG</a>
 
@@ -73,3 +76,12 @@ function isActive(href: string) {
     </div>
   </nav>
 </header>
+
+<style>
+  .blog-top-nav.is-scrolled {
+    border-color: rgba(57, 197, 187, 0.24);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(22px) saturate(165%);
+  }
+</style>
