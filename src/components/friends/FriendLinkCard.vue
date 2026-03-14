@@ -3,22 +3,27 @@
     :href="friend.url"
     target="_blank"
     rel="noopener noreferrer"
-    class="block transition duration-300 hover:scale-105"
+    class="group block transition duration-300 hover:scale-[1.02]"
     :aria-label="`访问友链 ${friend.name}`"
   >
-    <LiquidGlassCard padding="16px" class="transition duration-300 hover:border-miku/45 hover:shadow-xl">
-      <div class="flex items-center gap-3">
+    <LiquidGlassCard padding="20px" class="h-full transition duration-300 group-hover:shadow-[0_14px_36px_rgba(15,23,42,0.35)]">
+      <div class="flex items-start gap-4">
         <img
           :src="friend.avatar"
           :alt="`${friend.name} logo`"
-          class="h-14 w-14 rounded-2xl border border-white/35 object-cover"
+          class="h-14 w-14 shrink-0 rounded-2xl border border-slate-200 object-cover ring-2 ring-transparent transition duration-300 group-hover:ring-miku/30"
           loading="lazy"
         />
 
         <div class="min-w-0 flex-1">
-          <h3 class="truncate text-base font-semibold text-white">{{ friend.name }}</h3>
-          <p class="mt-1 max-h-10 overflow-hidden text-sm text-white/70">{{ friend.description }}</p>
-          <p class="mt-2 truncate font-mono text-xs text-white/55">{{ friend.domain }}</p>
+          <h3 class="truncate text-base font-semibold text-slate-800 transition duration-300 group-hover:text-miku">{{ friend.name }}</h3>
+          <p class="mt-1.5 line-clamp-2 text-sm leading-relaxed text-slate-500">{{ friend.description }}</p>
+          <p class="mt-2.5 inline-flex items-center gap-1 truncate text-xs text-slate-400 transition duration-300 group-hover:text-slate-500">
+            <svg viewBox="0 0 24 24" class="h-3 w-3 shrink-0 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" /><path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+            </svg>
+            {{ friend.domain }}
+          </p>
         </div>
       </div>
     </LiquidGlassCard>

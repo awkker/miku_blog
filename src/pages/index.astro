@@ -7,6 +7,7 @@ import TypewriterSubtitle from '../components/home/TypewriterSubtitle.vue'
 const dockItems = [
   { name: '访客', href: '/about', icon: 'person' },
   { name: '博客', href: '/blog', icon: 'book' },
+  { name: '说说', href: '/moments', icon: 'moments' },
   { name: '留言', href: '/guestbook', icon: 'message' },
   { name: '友链', href: '/friends', icon: 'link' },
   { name: '登录', href: '/login', icon: 'login' },
@@ -17,6 +18,7 @@ const iconPaths: Record<string, string> = {
   person:
     'M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.87 0-7 2.01-7 4.5V21h14v-2.5c0-2.49-3.13-4.5-7-4.5z',
   book: 'M18 2H8a3 3 0 0 0-3 3v14a3 3 0 0 1 3-3h10V2zm2 16H8a1 1 0 0 0-1 1v1h13v-2z',
+  moments: 'M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z',
   message: 'M4 5h16a2 2 0 012 2v9a2 2 0 01-2 2H8l-4 3v-3H4a2 2 0 01-2-2V7a2 2 0 012-2zm4 5h8M8 13h6',
   link: 'M10 13a5 5 0 007.07 0l2.12-2.12a5 5 0 10-7.07-7.07L10 5M14 11a5 5 0 00-7.07 0L4.81 13.12a5 5 0 007.07 7.07L14 19',
   login: 'M10 17l5-5-5-5M15 12H3M17 4h2a2 2 0 012 2v12a2 2 0 01-2 2h-2',

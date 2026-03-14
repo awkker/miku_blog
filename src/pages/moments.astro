@@ -2,35 +2,35 @@
 import BaseHead from '../components/base/BaseHead.astro'
 import BlogTopNav from '../components/blog/BlogTopNav.astro'
 import GlobalToast from '../components/ui/GlobalToast.vue'
-import GuestbookBoard from '../components/guestbook/GuestbookBoard.vue'
+import MomentsBoard from '../components/moments/MomentsBoard.vue'
 ---
 
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <BaseHead title="留言板 | Miku Blog" description="Miku Blog 访客留言板" />
+    <BaseHead title="说说 | Miku Blog" description="Miku Blog 说说动态" />
   </head>
   <body class="min-h-screen bg-slate-50 text-slate-800">
     <BlogTopNav currentPath={Astro.url.pathname} />
     <main class="relative min-h-screen overflow-hidden pt-14">
       <div class="pointer-events-none absolute inset-0">
-        <div class="absolute left-[6%] top-[4%] h-[420px] w-[420px] rounded-full bg-[#39c5bb]/8 blur-[120px]" />
-        <div class="absolute right-[8%] top-[12%] h-[320px] w-[320px] rounded-full bg-[#c084fc]/6 blur-[100px]" />
-        <div class="absolute bottom-[12%] left-[30%] h-[260px] w-[260px] rounded-full bg-[#39c5bb]/5 blur-[90px]" />
+        <div class="absolute left-[8%] top-[5%] h-[400px] w-[400px] rounded-full bg-[#39c5bb]/8 blur-[120px]" />
+        <div class="absolute right-[6%] top-[10%] h-[350px] w-[350px] rounded-full bg-[#c084fc]/6 blur-[100px]" />
+        <div class="absolute bottom-[15%] left-[25%] h-[280px] w-[280px] rounded-full bg-[#c084fc]/4 blur-[90px]" />
       </div>
 
       <header class="relative mx-auto max-w-3xl px-4 pb-4 pt-12 text-center sm:px-6 sm:pt-16 lg:px-8">
         <div class="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-4 py-1.5 text-xs tracking-[0.22em] text-slate-400">
           <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
           </svg>
-          GUESTBOOK
+          MOMENTS
         </div>
-        <h1 class="bg-gradient-to-r from-slate-800 via-[#39c5bb] to-[#c084fc] bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
-          访客留言板
+        <h1 class="bg-gradient-to-r from-slate-800 via-[#c084fc] to-[#39c5bb] bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl">
+          说说
         </h1>
         <p class="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-500">
-          这里是站点的公共交流区。欢迎留下你的想法、建议或一句路过打卡。
+          碎片化的日常记录。随想、随拍、随心。
         </p>
         <nav class="mt-6 flex flex-wrap items-center justify-center gap-2.5" aria-label="页面导航">
           <a
@@ -42,9 +42,17 @@ import GuestbookBoard from '../components/guestbook/GuestbookBoard.vue'
             博客首页
           </a>
           <a
+            href="/guestbook"
+            class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 px-3.5 py-2 text-sm text-slate-500 transition hover:border-miku/40 hover:text-miku"
+            aria-label="前往留言板"
+          >
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.5]" aria-hidden="true"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
+            留言板
+          </a>
+          <a
             href="/friends"
             class="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white/60 px-3.5 py-2 text-sm text-slate-500 transition hover:border-[#c084fc]/40 hover:text-[#c084fc]"
-            aria-label="前往友情链接页面"
+            aria-label="前往友情链接"
           >
             <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.5]" aria-hidden="true"><path d="M10 13a5 5 0 007.07 0l2.12-2.12a5 5 0 00-7.07-7.07L10 5M14 11a5 5 0 00-7.07 0L4.81 13.12a5 5 0 007.07 7.07L14 19" /></svg>
             友情链接
@@ -53,7 +61,7 @@ import GuestbookBoard from '../components/guestbook/GuestbookBoard.vue'
       </header>
 
       <div class="relative mx-auto max-w-3xl space-y-6 px-4 pb-20 sm:px-6 lg:px-8">
-        <GuestbookBoard client:load />
+        <MomentsBoard client:load />
       </div>
 
       <GlobalToast client:load />

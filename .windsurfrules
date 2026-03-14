@@ -1,0 +1,12 @@
+# 🤖 Agent 行为最高准则 (Highest Priority Override)
+
+当前项目以项目根目录下的 `agents.md` 为**绝对单一事实来源 (Single Source of Truth)**。
+
+你可以通过按需加载 (Progressive Disclosure) 读取 `.windsurf/skills/` 目录下的外部 Skill（如 `frontend-design` 或 `ui-ux-pro-max`）来获取排版、动画交互和设计灵感，但**任何最终生成的代码与配置，必须进行严格的冲突校验**：
+
+1. **技术栈一票否决**：严禁受外部 Skill 影响而引入 `agents.md` 中明确禁用的技术栈（包括但不限于 yarn, pnpm, Pinia, Vuex, Gin, Fiber, GORM, ent, Elasticsearch 等）。
+2. **视觉绝对服从**：无论外部 UI Skill 如何建议，必须强制使用 `--miku-color: #39c5bb` 和 `#c084fc`。**绝对禁止使用任何 emoji**，必须使用 Unicode 字符。
+3. **样式隔离**：即使 UI Skill 倾向于写原生 CSS 模块，你也必须将其翻译为纯粹的 Tailwind CSS 原子类。
+4. **组件护城河**：处理 `LiquidGlassCard` 等核心视觉组件时，严格遵守 `agents.md` 中的“视觉调参原则”，外部 Skill 无权覆写高级光影参数。
+
+**🚨 最终判定**：当外部 Skill 的指导方针与 `agents.md` 发生任何微小的冲突时，**无条件、绝对地以 `agents.md` 为准**，并在输出代码前向用户声明你进行了规则修正。

@@ -1,14 +1,27 @@
 <template>
   <section class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
-      <p class="max-w-2xl text-sm leading-relaxed text-white/75">
-        欢迎交换友链。请确保网站持续更新、可稳定访问，并在你的站点中添加本博客链接。
-      </p>
+      <div class="flex items-center gap-2.5">
+        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#c084fc]/10">
+          <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-[#c084fc] stroke-[2]" aria-hidden="true">
+            <path d="M10 13a5 5 0 007.07 0l2.12-2.12a5 5 0 00-7.07-7.07L10 5M14 11a5 5 0 00-7.07 0L4.81 13.12a5 5 0 007.07 7.07L14 19" />
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-base font-semibold text-slate-800">友链墙</h2>
+          <p class="text-xs text-slate-400">
+            {{ links.length > 0 ? `已收录 ${links.length} 个站点` : '正在建设中' }}
+          </p>
+        </div>
+      </div>
       <MikuButton
         variant="ghost"
         aria-label="申请交换友链"
         @click="showToast('友链申请通道将在下一阶段开放。', 'info')"
       >
+        <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+          <path d="M12 5v14M5 12h14" />
+        </svg>
         申请交换
       </MikuButton>
     </div>
