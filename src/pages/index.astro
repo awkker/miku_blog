@@ -3,6 +3,8 @@ import BaseHead from '../components/base/BaseHead.astro'
 import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
 import SystemClock from '../components/home/SystemClock.vue'
 import TypewriterSubtitle from '../components/home/TypewriterSubtitle.vue'
+import MusicPlayer from '../components/home/MusicPlayer.vue'
+import HeroTitle from '../components/home/HeroTitle.vue'
 
 const dockItems = [
   { name: '访客', href: '/about', icon: 'person' },
@@ -41,28 +43,15 @@ const iconPaths: Record<string, string> = {
         </div>
 
         <div class="flex items-center gap-3 text-[11px]">
-          <span class="rounded-full bg-white/15 px-2 py-0.5">暂无播放</span>
-          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="上一首">
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M6 6h2v12H6zm3 6l9-6v12z" /></svg>
-          </button>
-          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="暂停">
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M7 5h4v14H7zm6 0h4v14h-4z" /></svg>
-          </button>
-          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="下一首">
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M16 6h2v12h-2zM7 6l9 6-9 6z" /></svg>
-          </button>
-          <button type="button" class="rounded p-1 transition hover:bg-white/15" aria-label="循环">
-            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-current"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z" /></svg>
-          </button>
-          <input type="range" min="0" max="100" value="45" class="h-1.5 w-16 cursor-pointer accent-miku" aria-label="音量" />
+          <MusicPlayer client:load />
           <span>⛅ 22°C</span>
           <SystemClock client:load />
         </div>
       </header>
 
       <section class="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
-        <h1 class="hero-title animate-fade-up text-[clamp(2.9rem,7.4vw,5.6rem)] tracking-[0.03em] text-[#60e8dc]">
-          薰逸の猫窝
+        <h1 class="hero-title animate-fade-up text-[clamp(2.9rem,7.4vw,5.6rem)] tracking-[0.03em]">
+          <span class="hero-text"><HeroTitle client:load text="薰逸の猫窝" /></span>
         </h1>
         <TypewriterSubtitle
           client:load
@@ -106,8 +95,29 @@ const iconPaths: Record<string, string> = {
     font-family: 'Noto Serif SC', 'Noto Serif JP', 'Songti SC', 'STSong', serif;
     font-weight: 700;
     line-height: 1.08;
-    text-shadow:
-      0 6px 18px rgba(10, 30, 34, 0.36),
-      0 0 28px rgba(96, 232, 220, 0.22);
+    position: relative;
+  }
+
+  .hero-text {
+    background: linear-gradient(
+      90deg,
+      #b4f0ea,
+      #60e8dc 25%,
+      #ffffff 50%,
+      #60e8dc 75%,
+      #b4f0ea
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-flow 5s ease-in-out infinite alternate;
+    position: relative;
+    display: inline-block;
+  }
+
+  @keyframes gradient-flow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
   }
 </style>

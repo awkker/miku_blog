@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content'
 import BaseHead from '../components/base/BaseHead.astro'
 import BlogTopNav from '../components/blog/BlogTopNav.astro'
 import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
+import AboutGithubProfile from '../components/about/AboutGithubProfile.vue'
 
 const postCount = (await getCollection('blog')).length
 
@@ -103,6 +104,15 @@ const writingMap = [
 
 const monthlyGoals = ['完成 4 篇高质量文章', '完善项目展示页', '优化移动端阅读体验']
 const listeningNow = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名林檎 - 丸ノ内サディスティック']
+
+const githubUsername = 'awkker'
+
+const socialLinks = [
+  { label: 'QQ', href: 'https://qm.qq.com/q/c7DY18rEju' },
+  { label: 'Bilibili', href: 'https://space.bilibili.com/1969160969' },
+  { label: '抖音', href: 'https://www.douyin.com/user/MS4wLjABAAAATzdjtBBrLLCn69TtPMeseuEUzztbNZzw-9f13adrfiM' },
+  { label: '小红书', href: 'https://www.xiaohongshu.com/user/profile/6427cf87000000002901166e' },
+]
 ---
 
 <!doctype html>
@@ -116,6 +126,8 @@ const listeningNow = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名�
 
     <main class="relative overflow-hidden pt-14">
       <div class="pointer-events-none absolute inset-0">
+        <div class="absolute inset-0 bg-[url('/picture/aboutme.png')] bg-cover bg-center bg-no-repeat opacity-[0.22]" />
+        <div class="absolute inset-0 bg-white/12" />
         <div class="absolute left-[8%] top-[4%] h-[360px] w-[360px] rounded-full bg-[#39c5bb]/10 blur-[120px]" />
         <div class="absolute right-[4%] top-[9%] h-[320px] w-[320px] rounded-full bg-[#c084fc]/8 blur-[100px]" />
         <div class="absolute bottom-[18%] left-[30%] h-[280px] w-[280px] rounded-full bg-[#c084fc]/6 blur-[90px]" />
@@ -216,6 +228,10 @@ const listeningNow = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名�
             </div>
           </LiquidGlassCard>
         </div>
+      </section>
+
+      <section id="github" class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <AboutGithubProfile client:visible githubUsername={githubUsername} />
       </section>
 
       <section class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
@@ -388,7 +404,7 @@ const listeningNow = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名�
 
       <section class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
         <LiquidGlassCard client:visible padding="26px" maxWidth="100%">
-          <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <h2 class="text-lg font-bold text-slate-900">如果你也在做类似方向，欢迎交流</h2>
               <p class="mt-1 text-sm text-slate-500">可以聊前端体验、工程化方案、博客搭建与内容结构。</p>
@@ -401,13 +417,25 @@ const listeningNow = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名�
                 发邮件
               </a>
               <a
-                href="https://github.com"
+                href={`https://github.com/${githubUsername}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="inline-flex items-center rounded-xl border border-slate-200 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#c084fc]/40 hover:text-[#8b5cf6]"
               >
                 GitHub
               </a>
+              {
+                socialLinks.map((link) => (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-[#c084fc]/40 hover:text-[#8b5cf6]"
+                  >
+                    {link.label}
+                  </a>
+                ))
+              }
             </div>
           </div>
         </LiquidGlassCard>
