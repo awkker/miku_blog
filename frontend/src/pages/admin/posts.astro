@@ -1,0 +1,19 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
+import AdminPostsManager from '../../components/admin/AdminPostsManager.vue'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="文章管理 | Miku Blog" description="后台文章管理" />
+    <AdminRouteGuard />
+  </head>
+  <body>
+    <AdminLayout activeKey="posts" pageTitle="文章管理">
+      <AdminPostsManager client:load />
+    </AdminLayout>
+  </body>
+</html>

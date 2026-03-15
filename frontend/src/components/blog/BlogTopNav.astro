@@ -1,0 +1,87 @@
+---
+interface NavItem {
+  href: string
+  label: string
+}
+
+interface Props {
+  currentPath?: string
+}
+
+const { currentPath = '/' } = Astro.props
+
+const primaryLinks: NavItem[] = [
+  { href: '/blog', label: '博客首页' },
+  { href: '/moments', label: '说说' },
+  { href: '/guestbook', label: '留言板' },
+  { href: '/friends', label: '友情链接' },
+  { href: '/about', label: '关于' },
+]
+
+const actionLinks: NavItem[] = [
+  { href: '/admin', label: '后台' },
+  { href: '/login', label: '登录' },
+]
+
+function isActive(href: string) {
+  if (href === '/blog') {
+    return currentPath === '/blog' || currentPath.startsWith('/blog/')
+  }
+
+  return currentPath === href
+}
+---
+
+<header
+  data-blog-topnav
+  class="blog-top-nav fixed inset-x-0 top-0 z-50 border-b border-white/50 bg-white/62 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300"
+>
+  <nav class="mx-auto flex h-14 w-full max-w-[1320px] items-center justify-between gap-3 px-4 text-sm text-slate-700">
+    <a href="/" class="shrink-0 font-semibold tracking-[0.18em]">NANAMIKU BLOG</a>
+
+    <div class="hidden items-center gap-4 md:flex">
+      {
+        primaryLinks.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              'transition',
+              isActive(item.href) ? 'text-miku' : 'hover:text-miku',
+            ]}
+            aria-label={`前往${item.label}`}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </div>
+
+    <div class="flex items-center gap-2">
+      {
+        actionLinks.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              'rounded-xl border px-3 py-1.5 text-xs transition sm:text-sm',
+              isActive(item.href)
+                ? 'border-miku/45 bg-miku-soft text-miku'
+                : 'border-white/35 bg-white/30 hover:border-miku/35 hover:text-miku',
+            ]}
+            aria-label={`前往${item.label}`}
+          >
+            {item.label}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+</header>
+
+<style>
+  .blog-top-nav.is-scrolled {
+    border-color: rgba(57, 197, 187, 0.24);
+    background: rgba(255, 255, 255, 0.82);
+    box-shadow: 0 12px 34px rgba(15, 23, 42, 0.16);
+    backdrop-filter: blur(22px) saturate(165%);
+  }
+</style>

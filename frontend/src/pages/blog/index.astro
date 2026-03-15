@@ -1,0 +1,745 @@
+---
+import { Image } from 'astro:assets'
+import { getCollection } from 'astro:content'
+import BaseHead from '../../components/base/BaseHead.astro'
+import BlogTopNav from '../../components/blog/BlogTopNav.astro'
+import FormattedDate from '../../components/base/FormattedDate.astro'
+import LiquidGlassCard from '../../components/ui/LiquidGlassCard.vue'
+import LatestMoments from '../../components/moments/LatestMoments.vue'
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+)
+
+const tabs = ['最新', '精选', '随笔', '热度']
+const categoryMeta = [
+  {
+    label: '前端设计',
+    icon: 'M3 12h18M3 6h18M3 18h18',
+    chipClass: 'border-miku/35 bg-miku-soft text-miku',
+    toneClass: 'from-[#39c5bb]/70 to-transparent',
+  },
+  {
+    label: 'Astro',
+    icon: 'M12 3l2.7 5.46L21 9.37l-4.5 4.38L17.56 21 12 18.27 6.44 21 7.5 13.75 3 9.37l6.3-.91L12 3z',
+    chipClass: 'border-[#c084fc]/35 bg-[#f3e8ff] text-[#8b5cf6]',
+    toneClass: 'from-[#c084fc]/70 to-transparent',
+  },
+  {
+    label: '生活观察',
+    icon: 'M4 18v-5a8 8 0 0116 0v5M9 22h6',
+    chipClass: 'border-sky-300/40 bg-sky-50 text-sky-600',
+    toneClass: 'from-sky-400/50 to-transparent',
+  },
+  {
+    label: '代码笔记',
+    icon: 'M8 9l-4 3 4 3M16 9l4 3-4 3M14 5l-4 14',
+    chipClass: 'border-emerald-300/40 bg-emerald-50 text-emerald-600',
+    toneClass: 'from-emerald-400/55 to-transparent',
+  },
+]
+
+const tagCloud = [
+  'Astro',
+  'Vue Islands',
+  'Nano Stores',
+  'Tailwind',
+  'Go',
+  'Hertz',
+  'PostgreSQL',
+  'Redis',
+  'UI 设计',
+  '工程化',
+]
+
+const nowItems = [
+  '重构博客首页信息架构',
+  '整理 Astro + Vue Islands 模板',
+  '记录前端交互动效实践',
+]
+
+const monthlyGoals = [
+  '输出 4 篇高质量技术文',
+  '完善 LiquidGlassCard 组件库示例',
+  '启动个人项目第二阶段',
+]
+
+const currentPlaylist = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名林檎 - 丸ノ内サディスティック']
+
+const featuredProjects = [
+  { name: 'Miku Blog Engine', desc: 'Astro + Go 的轻量博客引擎', href: '/about' },
+  { name: 'Glass UI Lab', desc: '液态玻璃组件实验集', href: '/blog' },
+  { name: 'Nano Store Patterns', desc: '跨 Astro / Vue 状态模式', href: '/blog' },
+]
+
+const writingSeries = [
+  { name: 'Web 交互设计', count: 6 },
+  { name: 'Go 后端实录', count: 4 },
+  { name: '踩坑与复盘', count: 8 },
+]
+
+const readingMap = [
+  { step: '01', label: '先看精选', desc: '快速了解最能代表当前能力的文章。' },
+  { step: '02', label: '按系列阅读', desc: '进入专题连续阅读，不走散。' },
+  { step: '03', label: '看最近更新', desc: '掌握目前正在推进的主线。' },
+]
+
+const socialLinks = [
+  { label: 'GitHub', href: 'https://github.com', icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22' },
+  { label: 'Twitter', href: 'https://twitter.com', icon: 'M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z' },
+  { label: 'Mail', href: 'mailto:hello@nanamiku.blog', icon: 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm16 2l-8 5-8-5' },
+]
+
+const archiveByYear = Array.from(
+  posts.reduce((acc, post) => {
+    const year = String(post.data.pubDate.getFullYear())
+    acc.set(year, (acc.get(year) || 0) + 1)
+    return acc
+  }, new Map<string, number>()),
+)
+  .map(([year, count]) => ({ year, count }))
+  .sort((a, b) => Number(b.year) - Number(a.year))
+
+const enrichedPosts = posts.map((post, index) => {
+  const sourceText = post.body ?? post.data.description ?? ''
+  const normalized = sourceText.replace(/[`*_#[\]()>!-]/g, ' ')
+  const words = normalized.split(/\s+/).filter(Boolean).length
+  const cjkChars = (normalized.match(/[\u4e00-\u9fff]/g) || []).length
+  const readingMinutes = Math.max(1, Math.ceil((words + cjkChars) / 260))
+  const category = categoryMeta[index % categoryMeta.length]
+  const seriesNumber = String(index + 1).padStart(2, '0')
+
+  return {
+    post,
+    category,
+    readingMinutes,
+    seriesNumber,
+    lastUpdated: post.data.updatedDate ?? post.data.pubDate,
+    isWide: index > 0 && index % 4 === 0,
+  }
+})
+
+const [featuredPost, ...restPosts] = enrichedPosts
+const curatedPosts = enrichedPosts.slice(0, 3)
+const latestPost = enrichedPosts[0]
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="Miku Blog" description="博客主页" />
+  </head>
+  <body class="bg-slate-100 text-slate-800">
+    <div class="relative min-h-screen pt-14">
+      <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(57,197,187,0.22),transparent_46%),radial-gradient(circle_at_85%_18%,rgba(192,132,252,0.16),transparent_36%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]" />
+      <div id="scroll-progress" class="fixed left-0 top-14 z-[60] h-0.5 w-full bg-gradient-to-r from-[#c084fc] via-miku to-[#c084fc]" />
+      <BlogTopNav currentPath={Astro.url.pathname} />
+
+      <header class="relative overflow-hidden border-b border-white/60">
+        <div class="absolute inset-0 bg-[url('/picture/bloglist.jpg')] bg-cover bg-center bg-no-repeat" />
+        <div class="absolute inset-0 bg-gradient-to-br from-slate-950/42 via-slate-900/30 to-white/86" />
+        <div class="pointer-events-none absolute -left-16 top-6 h-56 w-56 rounded-full bg-miku/24 blur-3xl" />
+        <div class="pointer-events-none absolute -right-20 top-16 h-52 w-52 rounded-full bg-[#c084fc]/26 blur-3xl" />
+
+        <div class="relative z-10 mx-auto max-w-[1320px] px-4 pb-12 pt-20 md:pt-24">
+          <div class="grid gap-7 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-end">
+            <div class="space-y-5">
+              <p class="inline-flex animate-fade-up rounded-full border border-white/40 bg-white/20 px-4 py-1 text-xs tracking-[0.24em] text-[#99f6e4] backdrop-blur">
+                CREATOR SPACE
+              </p>
+              <h1 class="animate-fade-up text-[clamp(2.3rem,6.1vw,4.3rem)] font-black tracking-[0.08em] text-[#39c5bb] drop-shadow-lg">
+                NanaMiku Blog
+              </h1>
+              <p class="max-w-2xl animate-fade-up text-base leading-relaxed text-[#b8fff8] md:text-lg">
+                我是 Nana Miku，专注写 Astro、Vue Islands 与 Go 全栈实践。这里不是纯文章流，而是我持续构建的技术创作空间。
+              </p>
+
+              <div class="animate-fade-up flex flex-wrap gap-2.5">
+                <a
+                  href="#latest-posts"
+                  class="inline-flex items-center rounded-xl border border-[#c084fc]/45 bg-[#f3e8ff] px-4 py-2.5 text-sm font-semibold text-[#8b5cf6] transition hover:-translate-y-0.5 hover:border-[#c084fc]/70"
+                >
+                  看最新文章
+                </a>
+                <a
+                  href="#archive"
+                  class="inline-flex items-center rounded-xl border border-white/50 bg-white/18 px-4 py-2.5 text-sm font-semibold text-[#99f6e4] transition hover:-translate-y-0.5 hover:bg-white/24"
+                >
+                  进入归档
+                </a>
+                <a
+                  href="/about"
+                  class="inline-flex items-center rounded-xl border border-white/50 bg-white/12 px-4 py-2.5 text-sm font-semibold text-[#99f6e4] transition hover:-translate-y-0.5 hover:bg-white/18"
+                >
+                  关于我
+                </a>
+              </div>
+
+              <div class="grid gap-3 animate-fade-up sm:grid-cols-3">
+                <div class="rounded-2xl border border-white/45 bg-white/16 p-3 text-[#b8fff8] shadow-[0_10px_24px_rgba(15,23,42,0.18)] backdrop-blur-xl">
+                  <p class="text-[11px] tracking-[0.16em] text-[#99f6e4]">最近更新</p>
+                  <p class="mt-1 text-sm font-semibold">{latestPost?.post.data.title ?? '暂无文章'}</p>
+                </div>
+                <div class="rounded-2xl border border-white/45 bg-white/16 p-3 text-[#b8fff8] shadow-[0_10px_24px_rgba(15,23,42,0.18)] backdrop-blur-xl">
+                  <p class="text-[11px] tracking-[0.16em] text-[#99f6e4]">本月主线</p>
+                  <p class="mt-1 text-sm font-semibold">首页信息架构升级与阅读路径优化</p>
+                </div>
+                <div class="rounded-2xl border border-white/45 bg-white/16 p-3 text-[#b8fff8] shadow-[0_10px_24px_rgba(15,23,42,0.18)] backdrop-blur-xl">
+                  <p class="text-[11px] tracking-[0.16em] text-[#99f6e4]">当前项目</p>
+                  <p class="mt-1 text-sm font-semibold">Glass UI Lab · 液态玻璃组件实验集</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="hero-focus-card animate-fade-up rounded-2xl border border-white/50 bg-white/22 p-4 text-[#b8fff8] shadow-[0_18px_40px_rgba(15,23,42,0.22)] backdrop-blur-xl">
+              <p class="text-xs tracking-[0.2em] text-[#99f6e4]">本月在做什么</p>
+              <h2 class="mt-2 text-lg font-bold text-[#39c5bb]">把博客从文章列表升级为创作者入口</h2>
+              <p class="mt-2 text-sm leading-relaxed text-[#b8fff8]">
+                重点在信息分层、阅读引导与个人品牌辨识度，让访客在 10 秒内知道你是谁、写什么、从哪里开始读。
+              </p>
+              <div class="mt-4 rounded-xl border border-white/30 bg-white/12 px-3 py-2.5 text-xs text-[#99f6e4]">
+                最近一次发布：
+                {latestPost ? (
+                  <span class="font-semibold text-[#39c5bb]">
+                    <FormattedDate date={latestPost.post.data.pubDate} />
+                  </span>
+                ) : (
+                  <span class="font-semibold text-[#39c5bb]">暂无记录</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <a
+          href="#content-start"
+          class="group absolute bottom-4 left-1/2 z-20 -translate-x-1/2 rounded-full border border-white/40 bg-white/18 px-4 py-1.5 text-xs tracking-[0.18em] text-[#99f6e4] backdrop-blur transition hover:bg-white/24"
+          aria-label="向下阅读"
+        >
+          <span class="inline-flex items-center gap-2">
+            向下阅读
+            <span class="scroll-cue-dot h-1.5 w-1.5 rounded-full bg-[#39c5bb]" />
+          </span>
+        </a>
+      </header>
+
+      <main id="content-start" class="mx-auto mt-6 grid w-full max-w-[1320px] grid-cols-1 gap-8 px-4 pb-20 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <section class="space-y-6">
+          <div class="glass-layer rounded-2xl p-3">
+            <div class="flex flex-wrap items-center gap-2">
+              {
+                tabs.map((tab, index) => (
+                  <button
+                    type="button"
+                    class:list={[
+                      'rounded-xl border border-transparent px-4 py-2 text-sm transition',
+                      index === 0
+                        ? 'border-miku/45 bg-miku-soft text-miku'
+                        : tab === '热度'
+                          ? 'bg-white/35 text-slate-600 hover:border-orange-400/30 hover:text-orange-500'
+                          : 'bg-white/35 text-slate-600 hover:border-miku/30 hover:text-miku',
+                    ]}
+                  >
+                    {tab === '热度' && (
+                      <svg viewBox="0 0 24 24" class="mr-1 inline-block h-3.5 w-3.5 fill-none stroke-current stroke-[2] align-[-2px]" aria-hidden="true">
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                      </svg>
+                    )}
+                    {tab}
+                  </button>
+                ))
+              }
+              <span class="ml-auto rounded-lg border border-slate-200 bg-white/60 px-2.5 py-1 text-[11px] text-slate-500">
+                共 {posts.length} 篇文章
+              </span>
+            </div>
+          </div>
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div class="glass-layer rounded-2xl p-4">
+              <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-base font-bold text-slate-900">精选文章</h2>
+                <a href="#latest-posts" class="text-xs text-miku transition hover:text-miku-strong">查看全部</a>
+              </div>
+              <ul class="space-y-3">
+                {
+                  curatedPosts.map((entry, index) => (
+                    <li>
+                      <a
+                        href={`/blog/${entry.post.id}/`}
+                        class="group flex items-start gap-3 rounded-xl border border-white/55 bg-white/55 px-3 py-2.5 transition hover:border-miku/35 hover:bg-white/78"
+                      >
+                        <span class="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-miku-soft text-[11px] font-semibold text-miku">
+                          {index + 1}
+                        </span>
+                        <span class="min-w-0">
+                          <span class="line-clamp-1 text-sm font-semibold text-slate-800 transition group-hover:text-miku">
+                            {entry.post.data.title}
+                          </span>
+                          <span class="line-clamp-1 text-xs text-slate-500">{entry.post.data.description}</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+
+            <div class="glass-layer rounded-2xl p-4">
+              <h2 class="mb-3 text-base font-bold text-slate-900">阅读地图</h2>
+              <ol class="space-y-3">
+                {
+                  readingMap.map((item) => (
+                    <li class="rounded-xl border border-white/55 bg-white/60 p-3">
+                      <p class="text-[11px] tracking-[0.12em] text-miku">{item.step}</p>
+                      <p class="mt-0.5 text-sm font-semibold text-slate-800">{item.label}</p>
+                      <p class="mt-1 text-xs leading-relaxed text-slate-500">{item.desc}</p>
+                    </li>
+                  ))
+                }
+              </ol>
+            </div>
+          </div>
+
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="glass-layer rounded-2xl p-4">
+              <h2 class="mb-3 text-sm font-semibold text-slate-800">热门标签</h2>
+              <div class="flex flex-wrap gap-1.5">
+                {
+                  tagCloud.map((tag, index) => (
+                    <a
+                      href="#latest-posts"
+                      class:list={[
+                        'rounded-full border px-2.5 py-1 text-[11px] transition',
+                        index % 3 === 0
+                          ? 'border-miku/35 bg-miku-soft text-miku'
+                          : index % 3 === 1
+                            ? 'border-[#c084fc]/35 bg-[#f3e8ff] text-[#8b5cf6]'
+                            : 'border-slate-200 bg-white/65 text-slate-600',
+                      ]}
+                    >
+                      {tag}
+                    </a>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div class="glass-layer rounded-2xl p-4">
+              <h2 class="mb-3 text-sm font-semibold text-slate-800">系列专栏</h2>
+              <div class="space-y-2">
+                {
+                  writingSeries.map((series) => (
+                    <div class="flex items-center justify-between rounded-lg border border-white/55 bg-white/60 px-3 py-2 text-xs">
+                      <span class="font-medium text-slate-700">{series.name}</span>
+                      <span class="rounded-full bg-miku-soft px-2 py-0.5 text-miku">{series.count} 篇</span>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+
+            <div id="archive" class="glass-layer rounded-2xl p-4">
+              <h2 class="mb-3 text-sm font-semibold text-slate-800">时间归档</h2>
+              <div class="space-y-2">
+                {
+                  archiveByYear.map((item) => (
+                    <a href="#latest-posts" class="flex items-center justify-between rounded-lg border border-white/55 bg-white/60 px-3 py-2 text-xs transition hover:border-miku/30">
+                      <span class="font-medium text-slate-700">{item.year}</span>
+                      <span class="text-slate-500">{item.count} 篇</span>
+                    </a>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+
+          {featuredPost && (
+            <article class="blog-card group overflow-hidden rounded-3xl border border-white/65 bg-white/78 shadow-[0_20px_46px_rgba(15,23,42,0.14)] backdrop-blur">
+              <a href={`/blog/${featuredPost.post.id}/`} class="block lg:grid lg:grid-cols-[1.2fr_1fr]">
+                <div class="relative min-h-[260px] overflow-hidden lg:min-h-full">
+                  {featuredPost.post.data.heroImage ? (
+                    <Image
+                      src={featuredPost.post.data.heroImage}
+                      alt={featuredPost.post.data.title}
+                      width={980}
+                      height={560}
+                      class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
+                  ) : (
+                    <img
+                      src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1600&q=80"
+                      alt={featuredPost.post.data.title}
+                      class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
+                  )}
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-900/35 via-transparent to-transparent" />
+                  <div class="absolute left-4 top-4 rounded-full border border-white/45 bg-white/22 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
+                    置顶阅读
+                  </div>
+                </div>
+
+                <div class="space-y-4 p-5 md:p-6">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class:list={['inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold', featuredPost.category.chipClass]}>
+                      <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+                        <path d={featuredPost.category.icon} />
+                      </svg>
+                      {featuredPost.category.label}
+                    </span>
+                    <span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-500">
+                      系列 #{featuredPost.seriesNumber}
+                    </span>
+                  </div>
+
+                  <h2 class="text-2xl font-black leading-tight text-slate-900 transition group-hover:text-miku">
+                    {featuredPost.post.data.title}
+                  </h2>
+                  <p class="text-sm leading-relaxed text-slate-600 md:text-base">
+                    {featuredPost.post.data.description}
+                  </p>
+
+                  <div class="grid gap-2 text-xs text-slate-500 sm:grid-cols-3">
+                    <span class="rounded-lg border border-slate-200 bg-white/75 px-2.5 py-1.5">阅读约 {featuredPost.readingMinutes} 分钟</span>
+                    <span class="rounded-lg border border-slate-200 bg-white/75 px-2.5 py-1.5">
+                      发布：<FormattedDate date={featuredPost.post.data.pubDate} />
+                    </span>
+                    <span class="rounded-lg border border-slate-200 bg-white/75 px-2.5 py-1.5">
+                      更新：<FormattedDate date={featuredPost.lastUpdated} />
+                    </span>
+                  </div>
+                </div>
+              </a>
+            </article>
+          )}
+
+          <div id="latest-posts" class="grid grid-cols-1 gap-7 md:grid-cols-2">
+            {
+              restPosts.map((entry) => (
+                <article
+                  class:list={[
+                    'blog-card group relative overflow-hidden rounded-3xl border border-white/55 bg-white/72 shadow-lg backdrop-blur transition duration-500 hover:border-miku/25 hover:shadow-[0_16px_40px_rgba(57,197,187,0.12)]',
+                    entry.isWide && 'md:col-span-2',
+                  ]}
+                >
+                  <a
+                    href={`/blog/${entry.post.id}/`}
+                    class:list={[
+                      'block h-full',
+                      entry.isWide && 'md:grid md:grid-cols-[320px_1fr] md:items-stretch',
+                    ]}
+                  >
+                    <div class:list={['relative overflow-hidden', entry.isWide ? 'h-56 md:h-full' : 'h-52']}>
+                      {entry.post.data.heroImage ? (
+                        <Image
+                          src={entry.post.data.heroImage}
+                          alt={entry.post.data.title}
+                          width={720}
+                          height={420}
+                          class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        />
+                      ) : (
+                        <img
+                          src="https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1600&q=80"
+                          alt={entry.post.data.title}
+                          class="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                        />
+                      )}
+                      <div class:list={['absolute inset-x-0 top-0 h-16 bg-gradient-to-b opacity-80', entry.category.toneClass]} />
+                      <div class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition duration-500 group-hover:opacity-100" />
+                      <div class="absolute right-3 top-3 rounded-full bg-white/82 px-2.5 py-1 text-[10px] font-semibold text-slate-500 opacity-0 shadow-sm backdrop-blur-sm transition duration-500 group-hover:opacity-100">
+                        约 {entry.readingMinutes} 分钟
+                      </div>
+                    </div>
+
+                    <div class="space-y-3 px-5 py-5">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class:list={['inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold', entry.category.chipClass]}>
+                          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+                            <path d={entry.category.icon} />
+                          </svg>
+                          {entry.category.label}
+                        </span>
+                        <span class="inline-flex rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] text-slate-500">
+                          系列 #{entry.seriesNumber}
+                        </span>
+                      </div>
+                      <h2 class="text-xl font-bold text-slate-900 transition duration-300 group-hover:text-miku">{entry.post.data.title}</h2>
+                      <p class:list={[
+                        'overflow-hidden text-sm leading-relaxed text-slate-500 [display:-webkit-box] [-webkit-box-orient:vertical]',
+                        entry.isWide ? '[-webkit-line-clamp:3]' : '[-webkit-line-clamp:2]',
+                      ]}>
+                        {entry.post.data.description}
+                      </p>
+                      <div class="flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                        <span class="inline-flex items-center gap-1">
+                          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+                            <path d="M20 21V7a2 2 0 00-2-2h-3V3H9v2H6a2 2 0 00-2 2v14M16 11h-8M16 15h-8" />
+                          </svg>
+                          <FormattedDate date={entry.post.data.pubDate} />
+                        </span>
+                        <span class="h-0.5 w-0.5 rounded-full bg-slate-300" />
+                        <span>更新 <FormattedDate date={entry.lastUpdated} /></span>
+                        <span class="h-0.5 w-0.5 rounded-full bg-slate-300" />
+                        <span class="inline-flex items-center gap-1 text-slate-500">
+                          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.5]" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
+                          {920 - Number(entry.seriesNumber) * 76}
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                </article>
+              ))
+            }
+          </div>
+        </section>
+
+        <aside class="space-y-6">
+          <LiquidGlassCard client:load padding="0px">
+            <div class="relative overflow-hidden">
+              <div class="h-20 bg-gradient-to-r from-[#39c5bb]/30 via-[#c084fc]/20 to-[#39c5bb]/25" />
+              <div class="relative -mt-10 px-5 pb-5">
+                <div class="author-avatar-ring mx-auto h-20 w-20 rounded-full p-[3px]">
+                  <img
+                    src="/picture/author.jpg"
+                    alt="博主头像"
+                    class="h-full w-full rounded-full border-2 border-white object-cover transition-transform duration-700 hover:rotate-[360deg]"
+                  />
+                </div>
+
+                <div class="mt-3 text-center">
+                  <h3 class="text-xl font-bold text-slate-900">Nana Miku</h3>
+                  <p class="mt-0.5 text-xs text-miku/70">Front-end Developer / Writer</p>
+                  <p class="mt-2 text-sm leading-relaxed text-slate-500">写前端、写系统、写日常。希望每篇都能让人少走一点弯路。</p>
+                </div>
+
+                <div class="mt-3 flex items-center justify-center gap-3 text-[11px] text-slate-400">
+                  <span class="inline-flex items-center gap-1">
+                    <svg viewBox="0 0 24 24" class="h-3 w-3 fill-none stroke-current stroke-[2]" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" /><circle cx="12" cy="10" r="3" /></svg>
+                    China
+                  </span>
+                  <span class="h-0.5 w-0.5 rounded-full bg-slate-300" />
+                  <span class="inline-flex items-center gap-1">
+                    <svg viewBox="0 0 24 24" class="h-3 w-3 fill-none stroke-current stroke-[2]" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                    Since 2026
+                  </span>
+                </div>
+
+                <div class="mt-3 flex flex-wrap justify-center gap-1.5">
+                  {['Astro', 'Vue', 'Go', 'TypeScript', 'Tailwind'].map((skill) => (
+                    <span class="rounded-md border border-slate-200 bg-slate-50/80 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+
+                <div class="mt-4 flex items-center justify-center gap-2">
+                  {socialLinks.map((link) => (
+                    <a
+                      href={link.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white/60 text-slate-400 transition duration-300 hover:border-miku/40 hover:text-miku hover:shadow-sm"
+                      aria-label={link.label}
+                    >
+                      <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+                        <path d={link.icon} />
+                      </svg>
+                    </a>
+                  ))}
+                </div>
+
+                <div class="mt-4 grid grid-cols-3 gap-2.5 text-center">
+                  <div class="rounded-xl border border-slate-100 bg-white/50 px-2 py-2.5 transition duration-300 hover:border-miku/20 hover:shadow-sm">
+                    <p class="text-lg font-bold text-slate-900">{posts.length}</p>
+                    <p class="text-[11px] text-slate-500">文章</p>
+                  </div>
+                  <div class="rounded-xl border border-slate-100 bg-white/50 px-2 py-2.5 transition duration-300 hover:border-miku/20 hover:shadow-sm">
+                    <p class="text-lg font-bold text-slate-900">{writingSeries.length}</p>
+                    <p class="text-[11px] text-slate-500">系列</p>
+                  </div>
+                  <div class="rounded-xl border border-slate-100 bg-white/50 px-2 py-2.5 transition duration-300 hover:border-miku/20 hover:shadow-sm">
+                    <p class="text-lg font-bold text-slate-900">8.4k</p>
+                    <p class="text-[11px] text-slate-500">访问</p>
+                  </div>
+                </div>
+
+                <a
+                  href="/about"
+                  class="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-miku/35 bg-miku-soft px-3 py-2 text-xs font-semibold text-miku transition hover:border-miku/55"
+                >
+                  查看完整个人介绍
+                </a>
+              </div>
+            </div>
+          </LiquidGlassCard>
+
+          <div class="glass-layer rounded-2xl p-4">
+            <h3 class="text-sm font-semibold text-slate-900">Now / 近况</h3>
+            <ul class="mt-3 space-y-2">
+              {
+                nowItems.map((item) => (
+                  <li class="rounded-lg border border-white/60 bg-white/66 px-3 py-2 text-xs leading-relaxed text-slate-600">{item}</li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="glass-layer rounded-2xl p-4">
+            <h3 class="text-sm font-semibold text-slate-900">本月目标</h3>
+            <ul class="mt-3 space-y-2">
+              {
+                monthlyGoals.map((goal) => (
+                  <li class="flex items-start gap-2 rounded-lg border border-white/60 bg-white/66 px-3 py-2 text-xs text-slate-600">
+                    <span class="mt-1 h-1.5 w-1.5 rounded-full bg-miku" />
+                    <span>{goal}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="glass-layer rounded-2xl p-4">
+            <h3 class="text-sm font-semibold text-slate-900">正在听</h3>
+            <ul class="mt-3 space-y-2 text-xs text-slate-600">
+              {
+                currentPlaylist.map((song) => (
+                  <li class="rounded-lg border border-white/60 bg-white/66 px-3 py-2">{song}</li>
+                ))
+              }
+            </ul>
+          </div>
+
+          <div class="glass-layer rounded-2xl p-4">
+            <h3 class="text-sm font-semibold text-slate-900">主推项目</h3>
+            <div class="mt-3 space-y-2.5">
+              {
+                featuredProjects.map((project) => (
+                  <a href={project.href} class="block rounded-lg border border-white/60 bg-white/66 px-3 py-2.5 transition hover:border-miku/30">
+                    <p class="text-xs font-semibold text-slate-800">{project.name}</p>
+                    <p class="mt-1 text-[11px] text-slate-500">{project.desc}</p>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="glass-layer rounded-2xl p-4">
+            <h3 class="text-sm font-semibold text-slate-900">写作系列</h3>
+            <div class="mt-3 grid grid-cols-1 gap-2">
+              {
+                writingSeries.map((series) => (
+                  <a href="#latest-posts" class="flex items-center justify-between rounded-lg border border-white/60 bg-white/66 px-3 py-2 text-xs transition hover:border-miku/30">
+                    <span class="font-medium text-slate-700">{series.name}</span>
+                    <span class="text-slate-500">{series.count} 篇</span>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="glass-layer rounded-2xl p-4">
+            <h3 class="text-sm font-semibold text-slate-900">站点趋势</h3>
+            <p class="mt-1 text-[11px] text-slate-500">最近 7 天访问热度</p>
+            <svg viewBox="0 0 300 96" class="mt-3 w-full" role="img" aria-label="站点趋势图">
+              <defs>
+                <linearGradient id="trendLine" x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stop-color="#39c5bb" />
+                  <stop offset="100%" stop-color="#c084fc" />
+                </linearGradient>
+              </defs>
+              <path d="M10 70 C45 66,55 56,82 54 C110 50,128 62,156 46 C184 32,206 42,232 30 C250 22,266 24,290 16" fill="none" stroke="url(#trendLine)" stroke-width="4" stroke-linecap="round" />
+              <path d="M10 78 C45 74,55 63,82 62 C110 56,128 68,156 54 C184 40,206 50,232 38 C250 31,266 32,290 26" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.45" />
+            </svg>
+          </div>
+
+          <LiquidGlassCard client:load padding="20px">
+            <LatestMoments client:load />
+          </LiquidGlassCard>
+        </aside>
+      </main>
+
+      <button
+        id="back-to-top"
+        type="button"
+        class="fixed bottom-6 right-5 z-40 rounded-full border border-miku/35 bg-white/85 p-2.5 text-miku shadow-[0_12px_28px_rgba(15,23,42,0.18)] backdrop-blur transition hover:-translate-y-0.5 hover:border-miku/60"
+        aria-label="返回顶部"
+      >
+        <svg viewBox="0 0 24 24" class="h-4.5 w-4.5 fill-none stroke-current stroke-[2]"><path d="M18 15l-6-6-6 6" /></svg>
+      </button>
+    </div>
+
+    <script is:inline>
+      const progressBar = document.getElementById('scroll-progress')
+      const backToTop = document.getElementById('back-to-top')
+      const topNav = document.querySelector('[data-blog-topnav]')
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+        const ratio = maxScroll > 0 ? Math.min(1, scrollTop / maxScroll) : 0
+
+        if (progressBar) {
+          progressBar.style.transform = `scaleX(${ratio})`
+        }
+
+        if (backToTop) {
+          backToTop.classList.toggle('is-visible', scrollTop > 520)
+        }
+
+        if (topNav) {
+          topNav.classList.toggle('is-scrolled', scrollTop > 32)
+        }
+      }
+
+      window.addEventListener('scroll', updateScrollUI, { passive: true })
+      window.addEventListener('resize', updateScrollUI, { passive: true })
+      updateScrollUI()
+
+      backToTop?.addEventListener('click', () => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+      })
+    </script>
+  </body>
+</html>
+
+<style>
+  @keyframes ring-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  .author-avatar-ring {
+    background: conic-gradient(#39c5bb, #c084fc, #39c5bb);
+    animation: ring-rotate 6s linear infinite;
+  }
+  @keyframes scroll-cue {
+    0%, 100% { transform: translateY(0); opacity: 0.9; }
+    50% { transform: translateY(4px); opacity: 0.35; }
+  }
+  .scroll-cue-dot {
+    animation: scroll-cue 1.6s ease-in-out infinite;
+  }
+  #scroll-progress {
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 120ms linear;
+  }
+  .blog-card {
+    transform: translateY(0);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease, border-color 0.5s ease;
+  }
+  .blog-card:hover {
+    transform: translateY(-4px);
+  }
+  #back-to-top {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+  }
+  #back-to-top.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+</style>

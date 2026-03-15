@@ -1,0 +1,19 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
+import AdminFriendsManager from '../../components/admin/AdminFriendsManager.vue'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="友链管理 | Miku Blog" description="后台友链管理" />
+    <AdminRouteGuard />
+  </head>
+  <body>
+    <AdminLayout activeKey="friends" pageTitle="友链管理">
+      <AdminFriendsManager client:load />
+    </AdminLayout>
+  </body>
+</html>

@@ -1,0 +1,524 @@
+---
+import { getCollection } from 'astro:content'
+import BaseHead from '../components/base/BaseHead.astro'
+import BlogTopNav from '../components/blog/BlogTopNav.astro'
+import LiquidGlassCard from '../components/ui/LiquidGlassCard.vue'
+import AboutGithubProfile from '../components/about/AboutGithubProfile.vue'
+
+const postCount = (await getCollection('blog')).length
+
+const identityTags = ['Astro', 'Vue Islands', 'Go', 'Tailwind', 'Nano Stores']
+
+const nowItems = [
+  '重构博客首页信息架构与阅读路径',
+  '打磨 LiquidGlassCard 的组件化用法',
+  '沉淀 Astro + Vue Islands 项目模板',
+]
+
+const milestones = [
+  {
+    year: '2022',
+    title: '开始系统写作',
+    summary: '从零散笔记转向结构化输出，建立个人技术写作节奏。',
+    result: '累计产出 20+ 篇可复用实践文章',
+  },
+  {
+    year: '2023',
+    title: '聚焦前端工程化',
+    summary: '主攻组件复用、样式规范与协作流程，减少重复开发。',
+    result: '沉淀多套前端页面模板与规范',
+  },
+  {
+    year: '2024',
+    title: '全栈化推进',
+    summary: '将前端体验与 Go 后端能力联动，关注性能与可维护性。',
+    result: '形成 Astro + Go 的完整博客技术路线',
+  },
+  {
+    year: '2026',
+    title: '创作者空间升级',
+    summary: '把博客从文章列表升级为有路径、有节奏的创作者入口。',
+    result: '上线 About / Blog 的新信息架构',
+  },
+]
+
+const capabilityGroups = [
+  {
+    title: '前端体验',
+    desc: '关注视觉层次、交互节奏与页面信息密度。',
+    stack: ['Astro', 'Vue 3', 'Tailwind CSS', '组件化设计'],
+  },
+  {
+    title: '工程化',
+    desc: '用规范和流程提升迭代效率与可维护性。',
+    stack: ['TypeScript', '模块化结构', '内容驱动页面', '性能优化'],
+  },
+  {
+    title: '后端协同',
+    desc: '强调接口稳定性、数据组织和全栈落地能力。',
+    stack: ['Go', 'Hertz', 'sqlc', 'PostgreSQL / Redis'],
+  },
+]
+
+const featuredProjects = [
+  {
+    name: 'Miku Blog Engine',
+    focus: 'Astro + Go 的轻量博客引擎',
+    role: '负责信息架构、前后端联调、视觉规范落地',
+    metric: '首屏信息密度与阅读路径明显增强',
+    href: '/blog',
+  },
+  {
+    name: 'Glass UI Lab',
+    focus: '液态玻璃 UI 组件实验库',
+    role: '负责组件 API 设计与视觉统一策略',
+    metric: '形成可复用卡片与面板实现模式',
+    href: '/blog',
+  },
+  {
+    name: 'Nano Store Patterns',
+    focus: '跨 Astro / Vue 的状态协作模式',
+    role: '负责状态拆分方案与示例页面验证',
+    metric: '降低跨页面交互耦合与重复状态逻辑',
+    href: '/blog',
+  },
+]
+
+const writingMap = [
+  {
+    title: '入门先看',
+    desc: '先从精选文章了解我最核心的技术观点与实现方式。',
+    href: '/blog#latest-posts',
+  },
+  {
+    title: '系列专栏',
+    desc: '按专题连续阅读，适合系统学习同一方向。',
+    href: '/blog#archive',
+  },
+  {
+    title: '最近更新',
+    desc: '快速查看我当前在推进的主线和近期输出。',
+    href: '/blog#latest-posts',
+  },
+]
+
+const monthlyGoals = ['完成 4 篇高质量文章', '完善项目展示页', '优化移动端阅读体验']
+const listeningNow = ['宇多田光 - First Love', 'FKJ - Ylang Ylang', '椎名林檎 - 丸ノ内サディスティック']
+
+const githubUsername = 'awkker'
+
+const socialLinks = [
+  { label: 'QQ', href: 'https://qm.qq.com/q/c7DY18rEju' },
+  { label: 'Bilibili', href: 'https://space.bilibili.com/1969160969' },
+  { label: '抖音', href: 'https://www.douyin.com/user/MS4wLjABAAAATzdjtBBrLLCn69TtPMeseuEUzztbNZzw-9f13adrfiM' },
+  { label: '小红书', href: 'https://www.xiaohongshu.com/user/profile/6427cf87000000002901166e' },
+]
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="关于我 | Miku Blog" description="Nana Miku 的个人介绍与创作地图" />
+  </head>
+  <body class="min-h-screen bg-slate-50 text-slate-800">
+    <BlogTopNav currentPath={Astro.url.pathname} />
+    <div id="scroll-progress" class="fixed left-0 top-14 z-[60] h-0.5 w-full bg-gradient-to-r from-miku via-[#c084fc] to-miku" />
+
+    <main class="relative overflow-hidden pt-14">
+      <div class="pointer-events-none absolute inset-0">
+        <div class="absolute inset-0 bg-[url('/picture/aboutme.png')] bg-cover bg-center bg-no-repeat opacity-[0.22]" />
+        <div class="absolute inset-0 bg-white/12" />
+        <div class="absolute left-[8%] top-[4%] h-[360px] w-[360px] rounded-full bg-[#39c5bb]/10 blur-[120px]" />
+        <div class="absolute right-[4%] top-[9%] h-[320px] w-[320px] rounded-full bg-[#c084fc]/8 blur-[100px]" />
+        <div class="absolute bottom-[18%] left-[30%] h-[280px] w-[280px] rounded-full bg-[#c084fc]/6 blur-[90px]" />
+      </div>
+
+      <div class="relative z-10 space-y-4 pb-20 sm:space-y-5">
+      <section class="relative mx-auto max-w-[1320px] px-4 pt-12 sm:px-6 lg:px-8 lg:pt-16">
+        <div class="grid gap-6 lg:grid-cols-[1.1fr_360px]">
+          <LiquidGlassCard client:visible padding="30px" maxWidth="100%">
+            <div class="space-y-5">
+              <p class="inline-flex rounded-full border border-white/60 bg-white/58 px-4 py-1 text-xs tracking-[0.18em] text-slate-500">
+                ABOUT CREATOR
+              </p>
+              <h1 class="bg-gradient-to-r from-slate-900 via-[#39c5bb] to-[#c084fc] bg-clip-text text-[clamp(2rem,4.8vw,3.8rem)] font-black tracking-tight text-transparent">
+                我是 Nana Miku
+              </h1>
+              <p class="max-w-3xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                我把这个博客当作长期创作者空间来做。关注 Astro、Vue Islands 与 Go 全栈实践，持续写可复用、可落地、可维护的经验总结。
+              </p>
+
+              <div class="flex flex-wrap gap-2">
+                {
+                  identityTags.map((tag) => (
+                    <span class="rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-xs font-medium text-slate-600">
+                      {tag}
+                    </span>
+                  ))
+                }
+              </div>
+
+              <div class="flex flex-wrap gap-2.5 pt-1">
+                <a
+                  href="/blog#latest-posts"
+                  class="inline-flex items-center rounded-xl border border-miku/40 bg-miku-soft px-4 py-2.5 text-sm font-semibold text-miku transition hover:-translate-y-0.5 hover:border-miku/60"
+                >
+                  看精选文章
+                </a>
+                <a
+                  href="#projects"
+                  class="inline-flex items-center rounded-xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-[#c084fc]/45 hover:text-[#8b5cf6]"
+                >
+                  看主推项目
+                </a>
+                <a
+                  href="mailto:hello@nanamiku.blog?subject=来自博客的联系"
+                  class="inline-flex items-center rounded-xl border border-slate-200 bg-white/70 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-miku/40 hover:text-miku"
+                >
+                  联系我
+                </a>
+              </div>
+
+              <div class="grid gap-2.5 pt-2 sm:grid-cols-3">
+                <div class="rounded-xl border border-white/65 bg-white/62 px-3 py-2.5">
+                  <p class="text-xs text-slate-400">已发布文章</p>
+                  <p class="mt-1 text-lg font-bold text-slate-900">{postCount}</p>
+                </div>
+                <div class="rounded-xl border border-white/65 bg-white/62 px-3 py-2.5">
+                  <p class="text-xs text-slate-400">写作主线</p>
+                  <p class="mt-1 text-sm font-semibold text-slate-800">前端体验 + 全栈实战</p>
+                </div>
+                <div class="rounded-xl border border-white/65 bg-white/62 px-3 py-2.5">
+                  <p class="text-xs text-slate-400">当前状态</p>
+                  <p class="mt-1 text-sm font-semibold text-slate-800">持续迭代中</p>
+                </div>
+              </div>
+            </div>
+          </LiquidGlassCard>
+
+          <LiquidGlassCard client:visible padding="24px" maxWidth="100%">
+            <div class="space-y-4">
+              <div class="flex items-center gap-3">
+                <img
+                  src="/picture/author.jpg"
+                  alt="Nana Miku 头像"
+                  class="h-14 w-14 rounded-xl border border-slate-200 object-cover"
+                />
+                <div>
+                  <p class="text-base font-semibold text-slate-900">Nana Miku</p>
+                  <p class="text-xs text-slate-500">Front-end Developer / Writer</p>
+                </div>
+              </div>
+              <div class="rounded-xl border border-white/65 bg-white/58 px-3 py-2.5">
+                <p class="text-xs tracking-[0.14em] text-miku">NOW / 近况</p>
+                <ul class="mt-2 space-y-2 text-xs text-slate-600">
+                  {
+                    nowItems.map((item) => (
+                      <li class="flex items-start gap-2">
+                        <span class="mt-1 h-1.5 w-1.5 rounded-full bg-miku" />
+                        <span>{item}</span>
+                      </li>
+                    ))
+                  }
+                </ul>
+              </div>
+              <blockquote class="rounded-xl border border-white/65 bg-white/58 px-3 py-2.5 text-sm leading-relaxed text-slate-600">
+                让每篇文章都成为下一次开发可以直接复用的经验块。
+              </blockquote>
+            </div>
+          </LiquidGlassCard>
+        </div>
+      </section>
+
+      <section id="github" class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <AboutGithubProfile client:visible githubUsername={githubUsername} />
+      </section>
+
+      <section class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-4 md:grid-cols-3">
+          <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+            <h2 class="text-sm font-semibold text-slate-900">我在做什么</h2>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">
+              围绕个人博客做体验与结构升级，让页面既有设计感，也有明确的信息引导和内容路径。
+            </p>
+          </LiquidGlassCard>
+          <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+            <h2 class="text-sm font-semibold text-slate-900">我为什么写作</h2>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">
+              写作是我整理认知和沉淀方法的方式。希望读者看到后，能立刻拿去解决真实问题。
+            </p>
+          </LiquidGlassCard>
+          <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+            <h2 class="text-sm font-semibold text-slate-900">我关心的问题</h2>
+            <p class="mt-2 text-sm leading-relaxed text-slate-600">
+              信息层次是否清晰、组件能否复用、交互是否克制、系统是否能长期迭代。
+            </p>
+          </LiquidGlassCard>
+        </div>
+      </section>
+
+      <section id="timeline" class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <LiquidGlassCard client:visible padding="24px" maxWidth="100%">
+          <div class="mb-4">
+            <h2 class="text-xl font-bold text-slate-900">成长时间线</h2>
+            <p class="mt-1 text-sm text-slate-500">从写作到全栈，再到创作者空间化。</p>
+          </div>
+          <ol class="timeline-list relative space-y-4 pl-5">
+            {
+              milestones.map((item) => (
+                <li class="relative">
+                  <span class="absolute -left-[21px] top-2 h-3 w-3 rounded-full border border-white bg-miku shadow-[0_0_0_3px_rgba(57,197,187,0.14)]" />
+                  <div class="rounded-xl border border-white/65 bg-white/62 p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <h3 class="text-base font-semibold text-slate-900">{item.title}</h3>
+                      <span class="rounded-full bg-miku-soft px-2.5 py-0.5 text-xs font-semibold text-miku">{item.year}</span>
+                    </div>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-600">{item.summary}</p>
+                    <p class="mt-1.5 text-xs text-slate-500">结果：{item.result}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </LiquidGlassCard>
+      </section>
+
+      <section id="skills" class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-4 md:grid-cols-3">
+          {
+            capabilityGroups.map((group, index) => (
+              <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+                <h3 class="text-base font-semibold text-slate-900">{group.title}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-slate-600">{group.desc}</p>
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  {
+                    group.stack.map((item) => (
+                      <span
+                        class:list={[
+                          'rounded-full border px-2.5 py-1 text-xs',
+                          index === 0
+                            ? 'border-miku/35 bg-miku-soft text-miku'
+                            : index === 1
+                              ? 'border-slate-200 bg-white/70 text-slate-600'
+                              : 'border-[#c084fc]/35 bg-[#f3e8ff] text-[#8b5cf6]',
+                        ]}
+                      >
+                        {item}
+                      </span>
+                    ))
+                  }
+                </div>
+              </LiquidGlassCard>
+            ))
+          }
+        </div>
+      </section>
+
+      <section id="projects" class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <div class="mb-3">
+          <h2 class="text-xl font-bold text-slate-900">主推项目</h2>
+          <p class="mt-1 text-sm text-slate-500">我最希望访客优先进入的 3 条路径。</p>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-3">
+          {
+            featuredProjects.map((project) => (
+              <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+                <h3 class="text-base font-semibold text-slate-900">{project.name}</h3>
+                <p class="mt-2 text-sm text-slate-600">{project.focus}</p>
+                <p class="mt-2 text-xs leading-relaxed text-slate-500">{project.role}</p>
+                <p class="mt-2 rounded-lg border border-white/70 bg-white/65 px-2.5 py-2 text-xs text-slate-600">{project.metric}</p>
+                <a
+                  href={project.href}
+                  class="mt-3 inline-flex items-center rounded-lg border border-miku/35 bg-miku-soft px-3 py-1.5 text-xs font-semibold text-miku transition hover:border-miku/55"
+                >
+                  查看详情
+                </a>
+              </LiquidGlassCard>
+            ))
+          }
+        </div>
+      </section>
+
+      <section id="writing-map" class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <div class="mb-3">
+          <h2 class="text-xl font-bold text-slate-900">写作地图</h2>
+          <p class="mt-1 text-sm text-slate-500">如果你是第一次来，可以这样阅读。</p>
+        </div>
+        <div class="grid gap-4 md:grid-cols-3">
+          {
+            writingMap.map((item, index) => (
+              <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+                <p class="text-xs tracking-[0.14em] text-slate-400">PATH 0{index + 1}</p>
+                <h3 class="mt-1 text-base font-semibold text-slate-900">{item.title}</h3>
+                <p class="mt-2 text-sm leading-relaxed text-slate-600">{item.desc}</p>
+                <a
+                  href={item.href}
+                  class="mt-3 inline-flex items-center rounded-lg border border-slate-200 bg-white/75 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-[#c084fc]/40 hover:text-[#8b5cf6]"
+                >
+                  进入
+                </a>
+              </LiquidGlassCard>
+            ))
+          }
+        </div>
+      </section>
+
+      <section class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <div class="grid gap-4 md:grid-cols-3">
+          <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+            <h3 class="text-sm font-semibold text-slate-900">本月目标</h3>
+            <ul class="mt-3 space-y-2">
+              {
+                monthlyGoals.map((goal) => (
+                  <li class="flex items-start gap-2 text-xs text-slate-600">
+                    <span class="mt-1 h-1.5 w-1.5 rounded-full bg-miku" />
+                    <span>{goal}</span>
+                  </li>
+                ))
+              }
+            </ul>
+          </LiquidGlassCard>
+
+          <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+            <h3 class="text-sm font-semibold text-slate-900">正在听</h3>
+            <ul class="mt-3 space-y-2 text-xs text-slate-600">
+              {
+                listeningNow.map((song) => (
+                  <li class="rounded-lg border border-white/65 bg-white/62 px-2.5 py-2">
+                    {song}
+                  </li>
+                ))
+              }
+            </ul>
+          </LiquidGlassCard>
+
+          <LiquidGlassCard client:visible padding="20px" maxWidth="100%">
+            <h3 class="text-sm font-semibold text-slate-900">固定签名</h3>
+            <p class="mt-3 text-sm leading-relaxed text-slate-600">
+              技术不是为了炫技，而是为了让复杂问题更清晰、让协作更顺畅。
+            </p>
+            <p class="mt-2 text-xs text-slate-500">愿每次更新都比上次更有价值。</p>
+          </LiquidGlassCard>
+        </div>
+      </section>
+
+      <section class="relative mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+        <LiquidGlassCard client:visible padding="26px" maxWidth="100%">
+          <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">如果你也在做类似方向，欢迎交流</h2>
+              <p class="mt-1 text-sm text-slate-500">可以聊前端体验、工程化方案、博客搭建与内容结构。</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <a
+                href="mailto:hello@nanamiku.blog?subject=合作交流"
+                class="inline-flex items-center rounded-xl border border-miku/40 bg-miku-soft px-4 py-2 text-sm font-semibold text-miku transition hover:border-miku/60"
+              >
+                发邮件
+              </a>
+              <a
+                href={`https://github.com/${githubUsername}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center rounded-xl border border-slate-200 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-[#c084fc]/40 hover:text-[#8b5cf6]"
+              >
+                GitHub
+              </a>
+              {
+                socialLinks.map((link) => (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center rounded-xl border border-slate-200 bg-white/75 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:border-[#c084fc]/40 hover:text-[#8b5cf6]"
+                  >
+                    {link.label}
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+        </LiquidGlassCard>
+      </section>
+      </div>
+    </main>
+
+    <button
+      id="back-to-top"
+      type="button"
+      class="fixed bottom-6 right-5 z-40 rounded-full border border-miku/35 bg-white/85 p-2.5 text-miku shadow-[0_12px_28px_rgba(15,23,42,0.18)] backdrop-blur transition hover:-translate-y-0.5 hover:border-miku/60"
+      aria-label="返回顶部"
+    >
+      <svg viewBox="0 0 24 24" class="h-4.5 w-4.5 fill-none stroke-current stroke-[2]"><path d="M18 15l-6-6-6 6" /></svg>
+    </button>
+
+    <script is:inline>
+      const progressBar = document.getElementById('scroll-progress')
+      const backToTop = document.getElementById('back-to-top')
+      const topNav = document.querySelector('[data-blog-topnav]')
+
+      const updateScrollUI = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight
+        const ratio = maxScroll > 0 ? Math.min(1, scrollTop / maxScroll) : 0
+
+        if (progressBar) {
+          progressBar.style.transform = `scaleX(${ratio})`
+        }
+
+        if (backToTop) {
+          backToTop.classList.toggle('is-visible', scrollTop > 460)
+        }
+
+        if (topNav) {
+          topNav.classList.toggle('is-scrolled', scrollTop > 24)
+        }
+      }
+
+      window.addEventListener('scroll', updateScrollUI, { passive: true })
+      window.addEventListener('resize', updateScrollUI, { passive: true })
+      updateScrollUI()
+
+      backToTop?.addEventListener('click', () => {
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' })
+      })
+    </script>
+  </body>
+</html>
+
+<style>
+  .timeline-list::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      rgba(57, 197, 187, 0.6),
+      rgba(192, 132, 252, 0.55),
+      rgba(57, 197, 187, 0.25)
+    );
+  }
+
+  #scroll-progress {
+    transform-origin: 0 50%;
+    transform: scaleX(0);
+    transition: transform 120ms linear;
+  }
+
+  #back-to-top {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px);
+  }
+
+  #back-to-top.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+</style>

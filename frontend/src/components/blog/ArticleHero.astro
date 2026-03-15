@@ -1,0 +1,94 @@
+---
+import { Image, type ImageMetadata } from 'astro:assets'
+import FormattedDate from '../base/FormattedDate.astro'
+import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
+import fallbackCover from '../../assets/blog-placeholder-about.jpg'
+
+interface Props {
+  title: string
+  description: string
+  pubDate: Date
+  updatedDate?: Date
+  heroImage?: ImageMetadata
+  category: string
+  tags: string[]
+  readingMinutes: number
+  wordCount: number
+}
+
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroImage,
+  category,
+  tags = [],
+  readingMinutes,
+  wordCount,
+}: Props = Astro.props
+
+const coverImage = heroImage ?? fallbackCover
+---
+
+<section class="mx-auto max-w-[980px]">
+  <LiquidGlassCard client:load maxWidth="100%" padding="24px 24px 20px" borderRadius={28}>
+    <div class="space-y-5">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="rounded-full border border-miku/35 bg-miku-soft px-3 py-1 text-[11px] font-semibold tracking-[0.14em] text-miku">
+          {category}
+        </span>
+        {
+          tags.map((tag) => (
+            <span class="rounded-full border border-[#c084fc]/35 bg-[#f3e8ff] px-2.5 py-1 text-[11px] text-[#8b5cf6]">
+              {tag}
+            </span>
+          ))
+        }
+      </div>
+
+      <div class="space-y-3">
+        <h1 class="text-[clamp(1.9rem,3vw,2.65rem)] font-black leading-tight tracking-[0.01em] text-slate-900">
+          {title}
+        </h1>
+        <p class="max-w-3xl text-base leading-relaxed text-slate-600">{description}</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-slate-500">
+        <span class="inline-flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+            <path d="M20 21V7a2 2 0 00-2-2h-3V3H9v2H6a2 2 0 00-2 2v14M16 11h-8M16 15h-8" />
+          </svg>
+          发布于 <FormattedDate date={pubDate} />
+        </span>
+        {updatedDate && (
+          <span class="inline-flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+              <path d="M3 12a9 9 0 109-9m0 0v4m0-4h4" />
+            </svg>
+            更新于 <FormattedDate date={updatedDate} />
+          </span>
+        )}
+        <span class="inline-flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+            <path d="M12 8v5l3 3M22 12a10 10 0 11-20 0 10 10 0 0120 0z" />
+          </svg>
+          预计 {readingMinutes} 分钟
+        </span>
+        <span class="inline-flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
+            <path d="M4 5h16M4 12h16M4 19h10" />
+          </svg>
+          约 {wordCount.toLocaleString('zh-CN')} 字
+        </span>
+      </div>
+
+      <div class="relative overflow-hidden rounded-2xl border border-white/70 shadow-[0_12px_26px_rgba(15,23,42,0.1)]">
+        <div class="relative h-52 w-full sm:h-64 lg:h-72">
+          <Image src={coverImage} alt={title} width={1280} height={760} class="h-full w-full object-cover" />
+          <div class="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(57,197,187,0.08)_0%,rgba(192,132,252,0.2)_100%)]" />
+        </div>
+      </div>
+    </div>
+  </LiquidGlassCard>
+</section>

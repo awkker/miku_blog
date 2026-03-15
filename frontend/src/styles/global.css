@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&family=Noto+Serif+SC:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --miku-color: rgb(57, 197, 187);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  @apply bg-slate-100 font-sans text-slate-800 antialiased;
+}
+
+a {
+  @apply text-inherit no-underline;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+@layer components {
+  .glass-layer {
+    @apply border border-white/35 bg-white/20 shadow-glass backdrop-blur-xl;
+  }
+
+  .article-prose {
+    @apply prose prose-slate prose-base leading-8 md:prose-lg;
+  }
+
+  .article-prose p {
+    @apply mb-6 text-[1.02rem] text-slate-700;
+  }
+
+  .article-prose h1,
+  .article-prose h2,
+  .article-prose h3,
+  .article-prose h4 {
+    @apply mb-6 mt-10 border-b border-miku/20 pb-3 pl-4 text-slate-900;
+    border-left: 4px solid var(--miku-color);
+  }
+
+  .article-prose h2 {
+    @apply text-[1.58rem] font-bold;
+  }
+
+  .article-prose h3 {
+    @apply text-[1.34rem];
+  }
+
+  .article-prose a {
+    @apply font-medium text-miku underline decoration-miku/35 decoration-2 underline-offset-4 transition hover:text-[#2faea4];
+  }
+
+  .article-prose ul,
+  .article-prose ol {
+    @apply my-6 space-y-2.5;
+  }
+
+  .article-prose li::marker {
+    color: rgba(57, 197, 187, 0.85);
+  }
+
+  .article-prose blockquote {
+    @apply rounded-r-2xl border-l-4 border-[#c084fc] bg-[#f3e8ff]/80 px-5 py-4 italic text-slate-700;
+  }
+
+  .article-prose code {
+    @apply rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] text-slate-700;
+  }
+
+  .article-prose pre {
+    @apply hidden;
+  }
+
+  .article-prose img {
+    @apply rounded-2xl border border-white/70 shadow-[0_10px_24px_rgba(15,23,42,0.1)];
+  }
+
+  .article-prose figcaption {
+    @apply mt-2 text-center text-xs text-slate-400;
+  }
+
+  .article-prose mark {
+    @apply rounded-sm bg-miku-soft px-1 text-slate-800;
+  }
+
+  .article-prose *::selection {
+    background: rgba(57, 197, 187, 0.24);
+    color: rgb(15 23 42);
+  }
+}
