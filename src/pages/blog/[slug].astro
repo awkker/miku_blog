@@ -2,20 +2,151 @@
 import { type CollectionEntry, getCollection, render } from 'astro:content'
 import BlogPost from '../../layouts/BlogPost.astro'
 
+type BlogEntry = CollectionEntry<'blog'>
+
+interface HeadingItem {
+  depth: number
+  slug: string
+  text: string
+}
+
+interface PostPreview {
+  id: string
+  title: string
+  description: string
+  pubDate: Date
+}
+
+interface PageProps {
+  post: BlogEntry
+  prevPost: PostPreview | null
+  nextPost: PostPreview | null
+  relatedPosts: PostPreview[]
+}
+
+function normalizeMarkdown(source: string): string {
+  return source
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)]\([^)]*\)/g, '$1')
+    .replace(/<\/?[^>]+(>|$)/g, ' ')
+    .replace(/[#>*_~\-]/g, ' ')
+}
+
+function getReadingStats(source: string) {
+  const normalized = normalizeMarkdown(source)
+  const latinWords = normalized.match(/[A-Za-z0-9]+/g) ?? []
+  const cjkChars = normalized.match(/[\u3400-\u9fff]/g) ?? []
+  const wordCount = latinWords.length + cjkChars.length
+  const readingMinutes = Math.max(1, Math.ceil(wordCount / 260))
+
+  return {
+    wordCount,
+    readingMinutes,
+  }
+}
+
+function inferCategory(entry: BlogEntry): string {
+  if (entry.data.category) {
+    return entry.data.category
+  }
+
+  const source = `${entry.id} ${entry.data.title} ${entry.data.description}`.toLowerCase()
+
+  if (/markdown|mdx|guide|style/.test(source)) {
+    return '写作与排版'
+  }
+
+  if (/astro|vue|tailwind|css|frontend/.test(source)) {
+    return '前端开发'
+  }
+
+  if (/go|sql|redis|backend/.test(source)) {
+    return '后端工程'
+  }
+
+  return '技术随笔'
+}
+
+function inferTags(entry: BlogEntry, headings: HeadingItem[]): string[] {
+  if (entry.data.tags && entry.data.tags.length > 0) {
+    return entry.data.tags.slice(0, 5)
+  }
+
+  const seed = [
+    entry.id,
+    entry.data.title,
+    entry.data.description,
+    ...headings.slice(0, 3).map((heading) => heading.text),
+  ]
+    .join(' ')
+    .toLowerCase()
+
+  const tags = new Set<string>()
+  const push = (value: string) => {
+    if (tags.size < 5) {
+      tags.add(value)
+    }
+  }
+
+  if (/astro/.test(seed)) push('Astro')
+  if (/vue|island/.test(seed)) push('Vue 3')
+  if (/tailwind|css|style|design/.test(seed)) push('Tailwind CSS')
+  if (/markdown|mdx/.test(seed)) push('Markdown')
+  if (/guide|教程|指南/.test(seed)) push('实践指南')
+  if (/go|backend|api/.test(seed)) push('Go')
+
+  push('NanaMiku Blog')
+  push('个人写作')
+
+  return Array.from(tags)
+}
+
 export async function getStaticPaths() {
-  const posts = await getCollection('blog')
-  return posts.map((post) => ({
+  const posts = (await getCollection('blog')).sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+  )
+
+  const toPreview = (entry: BlogEntry): PostPreview => ({
+    id: entry.id,
+    title: entry.data.title,
+    description: entry.data.description,
+    pubDate: entry.data.pubDate,
+  })
+
+  return posts.map((post, index) => ({
     params: { slug: post.id },
-    props: post,
+    props: {
+      post,
+      prevPost: posts[index + 1] ? toPreview(posts[index + 1]) : null,
+      nextPost: posts[index - 1] ? toPreview(posts[index - 1]) : null,
+      relatedPosts: posts
+        .filter((candidate) => candidate.id !== post.id)
+        .slice(0, 3)
+        .map((candidate) => toPreview(candidate)),
+    },
   }))
 }
 
-type Props = CollectionEntry<'blog'>
-
-const post: Props = Astro.props
+const { post, prevPost, nextPost, relatedPosts }: PageProps = Astro.props
 const { Content, headings } = await render(post)
+const normalizedHeadings = (headings as HeadingItem[]) ?? []
+const { wordCount, readingMinutes } = getReadingStats(post.body ?? post.data.description)
+const category = inferCategory(post)
+const tags = inferTags(post, normalizedHeadings)
 ---
 
-<BlogPost {...post.data} headings={headings}>
+<BlogPost
+  {...post.data}
+  headings={normalizedHeadings}
+  category={category}
+  tags={tags}
+  wordCount={wordCount}
+  readingMinutes={readingMinutes}
+  prevPost={prevPost}
+  nextPost={nextPost}
+  relatedPosts={relatedPosts}
+>
   <Content />
 </BlogPost>
