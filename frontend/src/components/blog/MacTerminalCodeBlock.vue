@@ -16,7 +16,7 @@
       </button>
     </header>
 
-    <pre class="m-0 overflow-x-auto bg-[#1e1e1e] px-4 py-5 text-[0.9rem] leading-7 text-slate-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><code class="font-mono" v-html="codeHtml" /></pre>
+    <pre class="terminal-code-pre m-0 overflow-x-auto bg-[#1e1e1e] px-4 py-5 text-[0.9rem] leading-7 text-slate-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"><code class="font-mono" v-html="codeHtml" /></pre>
   </section>
 </template>
 

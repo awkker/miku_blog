@@ -88,8 +88,16 @@ select {
     @apply rounded-md bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] text-slate-700;
   }
 
+  .article-prose pre code {
+    @apply rounded-none bg-transparent p-0 text-inherit;
+  }
+
   .article-prose pre {
     @apply hidden;
+  }
+
+  .article-prose pre.terminal-code-pre {
+    @apply block;
   }
 
   .article-prose img {
