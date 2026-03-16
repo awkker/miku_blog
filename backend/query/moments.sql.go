@@ -649,3 +649,26 @@ func (q *Queries) ListMoments(ctx context.Context, arg ListMomentsParams) ([]Lis
 	}
 	return items, nil
 }
+
+const updateMoment = `-- name: UpdateMoment :exec
+UPDATE moments
+SET author_name = $2, content = $3, image_urls = $4
+WHERE id = $1
+`
+
+type UpdateMomentParams struct {
+	ID         uuid.UUID       `json:"id"`
+	AuthorName string          `json:"author_name"`
+	Content    string          `json:"content"`
+	ImageUrls  json.RawMessage `json:"image_urls"`
+}
+
+func (q *Queries) UpdateMoment(ctx context.Context, arg UpdateMomentParams) error {
+	_, err := q.db.Exec(ctx, updateMoment,
+		arg.ID,
+		arg.AuthorName,
+		arg.Content,
+		arg.ImageUrls,
+	)
+	return err
+}

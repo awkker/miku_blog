@@ -5,6 +5,7 @@ import SystemClock from '../components/home/SystemClock.vue'
 import TypewriterSubtitle from '../components/home/TypewriterSubtitle.vue'
 import MusicPlayer from '../components/home/MusicPlayer.vue'
 import HeroTitle from '../components/home/HeroTitle.vue'
+import WeatherDisplay from '../components/home/WeatherDisplay.vue'
 
 const dockItems = [
   { name: '访客', href: '/about', icon: 'person' },
@@ -12,8 +13,8 @@ const dockItems = [
   { name: '说说', href: '/moments', icon: 'moments' },
   { name: '留言', href: '/guestbook', icon: 'message' },
   { name: '友链', href: '/friends', icon: 'link' },
-  { name: '登录', href: '/login', icon: 'login' },
-  { name: '后台', href: '/admin', icon: 'admin' },
+  { name: '登录', href: '/login', icon: 'login', auth: 'guest' },
+  { name: '后台', href: '/admin', icon: 'admin', auth: 'authed' },
 ]
 
 const iconPaths: Record<string, string> = {
@@ -39,12 +40,13 @@ const iconPaths: Record<string, string> = {
 
       <header class="absolute left-0 top-0 z-20 flex h-8 w-full items-center justify-between border-b border-white/30 bg-white/35 px-4 text-sm font-medium text-[#39c5bb]/90 backdrop-blur-none">
         <div class="flex items-center gap-2 text-xs tracking-[0.2em]">
+          <img src="/picture/logo.png" alt="nanamiku logo" class="h-4 w-4 rounded-sm object-cover" />
           <span class="rounded bg-white/20 px-2 py-0.5">NANAMIKU BLOG</span>
         </div>
 
         <div class="flex items-center gap-3 text-[11px]">
           <MusicPlayer client:load />
-          <span>⛅ 22°C</span>
+          <WeatherDisplay client:load />
           <SystemClock client:load />
         </div>
       </header>
@@ -67,8 +69,10 @@ const iconPaths: Record<string, string> = {
                 <li>
                   <a
                     href={item.href}
+                    data-auth-visible={item.auth}
                     class:list={[
                       'group flex w-12 flex-col items-center gap-1 rounded-2xl py-2 text-[10px] text-[#39c5bb]/90 transition duration-300 hover:scale-110 hover:bg-white/20 sm:w-16 sm:text-xs sm:hover:scale-125',
+                      item.auth && 'hidden',
                       index === 1 && 'animate-dock-float',
                     ]}
                   >
@@ -89,6 +93,23 @@ const iconPaths: Record<string, string> = {
     </main>
   </body>
 </html>
+
+<script is:inline>
+  function updateAuthVisibleLinks() {
+    const token = window.localStorage.getItem('miku_blog_token');
+    const authed = Boolean(token);
+    const links = document.querySelectorAll('[data-auth-visible]');
+
+    links.forEach((el) => {
+      const mode = el.getAttribute('data-auth-visible');
+      const shouldShow = (mode === 'authed' && authed) || (mode === 'guest' && !authed);
+      el.classList.toggle('hidden', !shouldShow);
+    });
+  }
+
+  updateAuthVisibleLinks();
+  window.addEventListener('storage', updateAuthVisibleLinks);
+</script>
 
 <style>
   .hero-title {

@@ -125,6 +125,7 @@ type Querier interface {
 	UpdateAdminLastLogin(ctx context.Context, id uuid.UUID) error
 	UpdateFriendLink(ctx context.Context, arg UpdateFriendLinkParams) error
 	UpdateFriendLinkHealth(ctx context.Context, arg UpdateFriendLinkHealthParams) error
+	UpdateMoment(ctx context.Context, arg UpdateMomentParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) error
 	UpsertGuestbookVote(ctx context.Context, arg UpsertGuestbookVoteParams) error
 	UpsertPostViewDaily(ctx context.Context, arg UpsertPostViewDailyParams) error

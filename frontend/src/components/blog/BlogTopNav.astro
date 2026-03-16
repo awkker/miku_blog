@@ -2,6 +2,7 @@
 interface NavItem {
   href: string
   label: string
+  auth?: 'authed' | 'guest'
 }
 
 interface Props {
@@ -19,8 +20,8 @@ const primaryLinks: NavItem[] = [
 ]
 
 const actionLinks: NavItem[] = [
-  { href: '/admin', label: '后台' },
-  { href: '/login', label: '登录' },
+  { href: '/admin', label: '后台', auth: 'authed' },
+  { href: '/login', label: '登录', auth: 'guest' },
 ]
 
 function isActive(href: string) {
@@ -37,7 +38,10 @@ function isActive(href: string) {
   class="blog-top-nav fixed inset-x-0 top-0 z-50 border-b border-white/50 bg-white/62 shadow-[0_8px_24px_rgba(15,23,42,0.12)] backdrop-blur-2xl backdrop-saturate-150 transition-all duration-300"
 >
   <nav class="mx-auto flex h-14 w-full max-w-[1320px] items-center justify-between gap-3 px-4 text-sm text-slate-700">
-    <a href="/" class="shrink-0 font-semibold tracking-[0.18em]">NANAMIKU BLOG</a>
+    <a href="/" class="inline-flex shrink-0 items-center gap-2 font-semibold tracking-[0.18em]">
+      <img src="/picture/logo.png" alt="nanamiku logo" class="h-7 w-7 rounded-sm object-cover" />
+      <span>NANAMIKU BLOG</span>
+    </a>
 
     <div class="hidden items-center gap-4 md:flex">
       {
@@ -61,8 +65,10 @@ function isActive(href: string) {
         actionLinks.map((item) => (
           <a
             href={item.href}
+            data-auth-visible={item.auth}
             class:list={[
               'rounded-xl border px-3 py-1.5 text-xs transition sm:text-sm',
+              item.auth && 'hidden',
               isActive(item.href)
                 ? 'border-miku/45 bg-miku-soft text-miku'
                 : 'border-white/35 bg-white/30 hover:border-miku/35 hover:text-miku',
@@ -85,3 +91,20 @@ function isActive(href: string) {
     backdrop-filter: blur(22px) saturate(165%);
   }
 </style>
+
+<script is:inline>
+  function updateAuthVisibleLinks() {
+    const token = window.localStorage.getItem('miku_blog_token');
+    const authed = Boolean(token);
+    const links = document.querySelectorAll('[data-auth-visible]');
+
+    links.forEach((el) => {
+      const mode = el.getAttribute('data-auth-visible');
+      const shouldShow = (mode === 'authed' && authed) || (mode === 'guest' && !authed);
+      el.classList.toggle('hidden', !shouldShow);
+    });
+  }
+
+  updateAuthVisibleLinks();
+  window.addEventListener('storage', updateAuthVisibleLinks);
+</script>

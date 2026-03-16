@@ -6,7 +6,7 @@
           <h1 class="text-2xl font-semibold text-slate-900">友链管理</h1>
           <p class="mt-1 text-sm text-slate-600">维护友链展示、申请审核和站点健康检查。</p>
         </div>
-        <MikuButton variant="solid" aria-label="添加友链" @click="showCreateForm = !showCreateForm">+ 添加友链</MikuButton>
+        <MikuButton variant="solid" aria-label="添加友链" @click="toggleCreateForm">+ 添加友链</MikuButton>
       </div>
     </LiquidGlassCard>
 
@@ -18,14 +18,28 @@
           <input v-model="newFriend.name" type="text" placeholder="站点名称 *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
           <input v-model="newFriend.url" type="text" placeholder="站点 URL *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
         </div>
-        <div class="grid gap-3 md:grid-cols-2">
-          <input v-model="newFriend.domain" type="text" placeholder="域名 (example.com)" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-          <input v-model="newFriend.avatar_url" type="text" placeholder="头像 URL" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        </div>
+        <input v-model="newFriend.avatar_url" type="text" placeholder="头像 URL" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
         <input v-model="newFriend.description" type="text" placeholder="站点描述" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
         <div class="flex items-center gap-3">
           <MikuButton type="submit" variant="solid" :disabled="creatingFriend">{{ creatingFriend ? '添加中...' : '添加友链' }}</MikuButton>
-          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="showCreateForm = false">取消</button>
+          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="closeCreateForm">取消</button>
+        </div>
+      </form>
+    </LiquidGlassCard>
+
+    <LiquidGlassCard v-if="showEditForm" padding="24px">
+      <h2 class="mb-4 text-lg font-semibold text-slate-900">编辑友链</h2>
+      <form class="space-y-3" @submit.prevent="updateFriend">
+        <div class="grid gap-3 md:grid-cols-2">
+          <input v-model="editFriend.name" type="text" placeholder="站点名称 *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+          <input v-model="editFriend.url" type="text" placeholder="站点 URL *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        </div>
+        <input v-model="editFriend.avatar_url" type="text" placeholder="头像 URL" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <input v-model="editFriend.description" type="text" placeholder="站点描述" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <input v-model.number="editFriend.sort_order" type="number" min="0" placeholder="排序值 (越小越靠前)" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <div class="flex items-center gap-3">
+          <MikuButton type="submit" variant="solid" :disabled="updatingFriend">{{ updatingFriend ? '保存中...' : '保存修改' }}</MikuButton>
+          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="closeEditForm">取消</button>
         </div>
       </form>
     </LiquidGlassCard>
@@ -106,6 +120,7 @@
                     type="button"
                     class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-700 transition hover:border-miku/40 hover:text-miku"
                     aria-label="编辑友链"
+                    @click="startEditFriend(link)"
                   >
                     编辑
                   </button>
@@ -151,10 +166,22 @@ interface ApiFriendLink {
 interface FriendLink {
   id: string
   name: string
+  description: string
   url: string
+  domain: string
+  avatar_url: string
+  sortOrder: number
   status: 'approved' | 'pending' | 'rejected'
   health: 'ok' | 'down'
   createdAt: string
+}
+
+interface FriendForm {
+  name: string
+  url: string
+  avatar_url: string
+  description: string
+  sort_order: number
 }
 
 function mapStatus(s: string): 'approved' | 'pending' | 'rejected' {
@@ -175,10 +202,47 @@ function mapFriend(item: ApiFriendLink): FriendLink {
   return {
     id: item.id,
     name: item.name,
+    description: item.description || '',
     url: item.url,
+    domain: item.domain || '',
+    avatar_url: item.avatar_url || '',
+    sortOrder: Number(item.sort_order) || 0,
     status: mapStatus(item.status),
     health: item.health_status === 'ok' ? 'ok' : 'down',
     createdAt: formatDate(item.created_at),
+  }
+}
+
+function createEmptyFriendForm(): FriendForm {
+  return {
+    name: '',
+    url: '',
+    avatar_url: '',
+    description: '',
+    sort_order: 0,
+  }
+}
+
+function deriveDomainFromURL(rawURL: string): string {
+  const input = rawURL.trim()
+  if (!input) return ''
+  try {
+    const withScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(input) ? input : `https://${input}`
+    return new URL(withScheme).hostname.replace(/^www\./, '')
+  } catch {
+    return ''
+  }
+}
+
+function toFriendPayload(form: FriendForm) {
+  const url = form.url.trim()
+  return {
+    name: form.name.trim(),
+    url,
+    domain: deriveDomainFromURL(url),
+    avatar_url: form.avatar_url.trim(),
+    description: form.description.trim(),
+    sort_order: Number(form.sort_order) || 0,
   }
 }
 
@@ -186,14 +250,29 @@ const friends = ref<FriendLink[]>([])
 const loading = ref(false)
 const showCreateForm = ref(false)
 const creatingFriend = ref(false)
+const showEditForm = ref(false)
+const updatingFriend = ref(false)
+const editingFriendID = ref<string | null>(null)
 
-const newFriend = ref({
-  name: '',
-  url: '',
-  domain: '',
-  avatar_url: '',
-  description: '',
-})
+const newFriend = ref<FriendForm>(createEmptyFriendForm())
+const editFriend = ref<FriendForm>(createEmptyFriendForm())
+
+function toggleCreateForm() {
+  showCreateForm.value = !showCreateForm.value
+  if (showCreateForm.value) {
+    closeEditForm()
+  }
+}
+
+function closeCreateForm() {
+  showCreateForm.value = false
+}
+
+function closeEditForm() {
+  showEditForm.value = false
+  editingFriendID.value = null
+  editFriend.value = createEmptyFriendForm()
+}
 
 async function loadFriends() {
   loading.value = true
@@ -213,16 +292,9 @@ async function createFriend() {
   if (!newFriend.value.name.trim() || !newFriend.value.url.trim()) return
   creatingFriend.value = true
   try {
-    await api.post('/admin/friends', {
-      name: newFriend.value.name.trim(),
-      url: newFriend.value.url.trim(),
-      domain: newFriend.value.domain.trim(),
-      avatar_url: newFriend.value.avatar_url.trim(),
-      description: newFriend.value.description.trim(),
-      sort_order: 0,
-    })
-    showCreateForm.value = false
-    newFriend.value = { name: '', url: '', domain: '', avatar_url: '', description: '' }
+    await api.post('/admin/friends', toFriendPayload(newFriend.value))
+    closeCreateForm()
+    newFriend.value = createEmptyFriendForm()
     showToast('友链添加成功', 'success')
     await loadFriends()
   } catch (err) {
@@ -231,6 +303,37 @@ async function createFriend() {
     showToast(msg, 'error')
   } finally {
     creatingFriend.value = false
+  }
+}
+
+function startEditFriend(link: FriendLink) {
+  editingFriendID.value = link.id
+  editFriend.value = {
+    name: link.name,
+    url: link.url,
+    avatar_url: link.avatar_url,
+    description: link.description,
+    sort_order: link.sortOrder,
+  }
+  showEditForm.value = true
+  showCreateForm.value = false
+}
+
+async function updateFriend() {
+  if (!editingFriendID.value) return
+  if (!editFriend.value.name.trim() || !editFriend.value.url.trim()) return
+  updatingFriend.value = true
+  try {
+    await api.put(`/admin/friends/${editingFriendID.value}`, toFriendPayload(editFriend.value))
+    showToast('友链更新成功', 'success')
+    closeEditForm()
+    await loadFriends()
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '更新友链失败'
+    console.error('[AdminFriends] updateFriend failed:', err)
+    showToast(msg, 'error')
+  } finally {
+    updatingFriend.value = false
   }
 }
 

@@ -121,7 +121,7 @@
         {{ submitting ? '正在验证账号信息…' : '请使用有效管理员账号登录后台' }}
       </p>
       <p class="text-center text-[11px] text-slate-600">
-        测试账号：admin / miku1234
+        测试账号：admin / admin123
       </p>
     </form>
   </LiquidGlassCard>

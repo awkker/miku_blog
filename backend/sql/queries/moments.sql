@@ -27,6 +27,11 @@ INSERT INTO moments (author_name, content, image_urls, ip_hash, ua_hash)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING id, created_at;
 
+-- name: UpdateMoment :exec
+UPDATE moments
+SET author_name = $2, content = $3, image_urls = $4
+WHERE id = $1;
+
 -- name: CheckMomentLike :one
 SELECT count(*) FROM moment_likes WHERE moment_id = $1 AND visitor_id = $2;
 

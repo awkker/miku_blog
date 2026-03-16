@@ -42,6 +42,7 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 	moderationSvc := service.NewModerationService(db)
 	postsSvc := service.NewPostsService(db)
 	postCommentsSvc := service.NewPostCommentsService(db)
+	weatherSvc := service.NewWeatherService(rdb, cfg.Weather.Location)
 
 	tokenValidator := func(tokenStr string) (*middleware.AdminClaims, error) {
 		claims, err := authSvc.ValidateAccessToken(tokenStr)
@@ -66,11 +67,14 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 	postsH := public.NewPostsHandler(postsSvc)
 	postCommentsH := public.NewPostCommentsHandler(postCommentsSvc)
 	postsAdminH := admin.NewPostsAdminHandler(postsSvc)
+	momentsAdminH := admin.NewMomentsAdminHandler(momentsSvc)
+	weatherH := public.NewWeatherHandler(weatherSvc)
 
 	api := h.Group("/api/v1")
 	api.Use(middleware.Visitor(db))
 	{
 		api.GET("/health", healthH.Check)
+		api.GET("/weather", weatherH.Current)
 
 		// Auth
 		auth := api.Group("/auth")
@@ -156,6 +160,9 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 			adm.POST("/posts/:id/unpublish", postsAdminH.Unpublish)
 			adm.POST("/posts/:id/schedule", postsAdminH.Schedule)
 			adm.DELETE("/posts/:id", postsAdminH.Delete)
+
+			// Moments CRUD
+			adm.PUT("/moments/:id", momentsAdminH.Update)
 		}
 	}
 

@@ -101,7 +101,6 @@
 </template>
 
 <script setup lang="ts">
-import { marked } from 'marked'
 import { computed, onMounted, ref } from 'vue'
 
 import { api } from '../../lib/api'
@@ -133,11 +132,35 @@ interface PostDetail {
 const post = ref<PostDetail | null>(null)
 const loading = ref(true)
 const error = ref('')
+const markdownHtml = ref('')
+
+let markedParser: ((markdown: string) => string | Promise<string>) | null = null
 
 const renderedContent = computed(() => {
-  if (!post.value?.content_markdown) return ''
-  return marked.parse(post.value.content_markdown) as string
+  return markdownHtml.value
 })
+
+function escapeHtml(input: string): string {
+  return input
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+async function renderMarkdown(markdown: string): Promise<string> {
+  if (!markdown) return ''
+  try {
+    if (!markedParser) {
+      const mod = await import('marked')
+      markedParser = (source: string) => mod.marked.parse(source) as string
+    }
+    return await markedParser(markdown)
+  } catch {
+    return `<pre>${escapeHtml(markdown)}</pre>`
+  }
+}
 
 function formatDate(iso?: string): string {
   if (!iso) return '--'
@@ -165,8 +188,10 @@ async function loadPost() {
 
   loading.value = true
   error.value = ''
+  markdownHtml.value = ''
   try {
-    post.value = await api.get<PostDetail>(`/posts/${slug}`)
+    post.value = await api.get<PostDetail>(`/posts/${encodeURIComponent(slug)}`)
+    markdownHtml.value = await renderMarkdown(post.value.content_markdown || '')
   } catch {
     error.value = '文章加载失败，请检查链接是否正确'
   } finally {

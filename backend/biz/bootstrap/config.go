@@ -8,11 +8,16 @@ import (
 )
 
 type Config struct {
-	Server   ServerConfig
-	DB       DBConfig
-	Redis    RedisConfig
-	JWT      JWTConfig
-	CORS     CORSConfig
+	Server  ServerConfig
+	DB      DBConfig
+	Redis   RedisConfig
+	JWT     JWTConfig
+	CORS    CORSConfig
+	Weather WeatherConfig
+}
+
+type WeatherConfig struct {
+	Location string
 }
 
 type ServerConfig struct {
@@ -76,11 +81,14 @@ func LoadConfig() *Config {
 		},
 		JWT: JWTConfig{
 			Secret:     envStr("JWT_SECRET", "change-me-in-production"),
-			AccessTTL:  envDuration("JWT_ACCESS_TTL", 15*time.Minute),
-			RefreshTTL: envDuration("JWT_REFRESH_TTL", 7*24*time.Hour),
+			AccessTTL:  envDuration("JWT_ACCESS_TTL", 30*24*time.Hour),
+			RefreshTTL: envDuration("JWT_REFRESH_TTL", 30*24*time.Hour),
 		},
 		CORS: CORSConfig{
 			Origins: strings.Split(envStr("CORS_ORIGINS", "http://localhost:4321"), ","),
+		},
+		Weather: WeatherConfig{
+			Location: envStr("WEATHER_LOCATION", "Shanghai"),
 		},
 	}
 }

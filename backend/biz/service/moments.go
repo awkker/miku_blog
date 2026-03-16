@@ -123,6 +123,16 @@ func (s *MomentsService) Create(ctx context.Context, authorName, content string,
 	}, nil
 }
 
+func (s *MomentsService) Update(ctx context.Context, momentID uuid.UUID, authorName, content string, imageURLs []string) error {
+	imgs, _ := json.Marshal(imageURLs)
+	return s.q.UpdateMoment(ctx, query.UpdateMomentParams{
+		ID:         momentID,
+		AuthorName: authorName,
+		Content:    content,
+		ImageUrls:  imgs,
+	})
+}
+
 func (s *MomentsService) ToggleLike(ctx context.Context, momentID, visitorID uuid.UUID) (bool, error) {
 	cnt, err := s.q.CheckMomentLike(ctx, query.CheckMomentLikeParams{MomentID: momentID, VisitorID: visitorID})
 	if err != nil {

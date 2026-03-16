@@ -9,12 +9,49 @@
 </style>
 <script is:inline>
   document.documentElement.classList.add('auth-checking');
-  try {
-    const token = window.localStorage.getItem('miku_blog_token');
-    if (!token) {
-      window.location.replace('/login');
-    }
-  } finally {
-    document.documentElement.classList.remove('auth-checking');
+
+  const TOKEN_KEY = 'miku_blog_token';
+  const REFRESH_KEY = 'miku_blog_refresh';
+  const USER_KEY = 'miku_blog_user';
+
+  function clearAuthState() {
+    window.localStorage.removeItem(TOKEN_KEY);
+    window.localStorage.removeItem(REFRESH_KEY);
+    window.localStorage.removeItem(USER_KEY);
   }
+
+  function redirectLogin() {
+    clearAuthState();
+    window.location.replace('/login');
+  }
+
+  (async () => {
+    try {
+      const token = window.localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        redirectLogin();
+        return;
+      }
+
+      const res = await fetch('/api/v1/auth/me', {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: 'include',
+      });
+
+      if (!res.ok) {
+        redirectLogin();
+        return;
+      }
+
+      const body = await res.json();
+      if (!body || body.code !== 0) {
+        redirectLogin();
+      }
+    } catch {
+      redirectLogin();
+    } finally {
+      document.documentElement.classList.remove('auth-checking');
+    }
+  })();
 </script>

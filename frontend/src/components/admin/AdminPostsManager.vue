@@ -6,7 +6,7 @@
           <h1 class="text-2xl font-semibold text-slate-900">文章管理</h1>
           <p class="mt-1 text-sm text-slate-600">管理博客文章的发布、草稿与分类。</p>
         </div>
-        <MikuButton variant="solid" aria-label="新建文章" @click="showCreateForm = !showCreateForm">+ 新建文章</MikuButton>
+        <MikuButton variant="solid" aria-label="新建文章" @click="toggleCreateForm">+ 新建文章</MikuButton>
       </div>
     </LiquidGlassCard>
 
@@ -14,10 +14,7 @@
     <LiquidGlassCard v-if="showCreateForm" padding="24px">
       <h2 class="mb-4 text-lg font-semibold text-slate-900">新建文章</h2>
       <form class="space-y-3" @submit.prevent="createPost">
-        <div class="grid gap-3 md:grid-cols-2">
-          <input v-model="newPost.title" type="text" placeholder="文章标题 *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-          <input v-model="newPost.slug" type="text" placeholder="URL Slug *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        </div>
+        <input v-model="newPost.title" type="text" placeholder="文章标题 *" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
         <div class="grid gap-3 md:grid-cols-2">
           <input v-model="newPost.category" type="text" placeholder="分类" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
           <input v-model="newPost.tags" type="text" placeholder="标签 (逗号分隔)" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
@@ -31,7 +28,25 @@
             <option value="published">直接发布</option>
           </select>
           <MikuButton type="submit" variant="solid" :disabled="creating">{{ creating ? '创建中...' : '创建文章' }}</MikuButton>
-          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="showCreateForm = false">取消</button>
+          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="closeCreateForm">取消</button>
+        </div>
+      </form>
+    </LiquidGlassCard>
+
+    <LiquidGlassCard v-if="showEditForm" padding="24px">
+      <h2 class="mb-4 text-lg font-semibold text-slate-900">编辑文章</h2>
+      <form class="space-y-3" @submit.prevent="updatePost">
+        <input v-model="editPost.title" type="text" placeholder="文章标题 *" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <div class="grid gap-3 md:grid-cols-2">
+          <input v-model="editPost.category" type="text" placeholder="分类" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+          <input v-model="editPost.tags" type="text" placeholder="标签 (逗号分隔)" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        </div>
+        <input v-model="editPost.excerpt" type="text" placeholder="摘要" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <input v-model="editPost.hero_image_url" type="text" placeholder="封面图片 URL" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <textarea v-model="editPost.content_markdown" rows="8" placeholder="正文内容 (Markdown)" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <div class="flex items-center gap-3">
+          <MikuButton type="submit" variant="solid" :disabled="editing">{{ editing ? '保存中...' : '保存修改' }}</MikuButton>
+          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="closeEditForm">取消</button>
         </div>
       </form>
     </LiquidGlassCard>
@@ -69,6 +84,14 @@
               <td class="px-5 py-3.5 text-slate-600">{{ post.publishedAt }}</td>
               <td class="px-5 py-3.5 text-center">
                 <div class="flex items-center justify-center gap-2">
+                  <button
+                    type="button"
+                    class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-700 transition hover:border-miku/40 hover:text-miku"
+                    aria-label="编辑文章"
+                    @click="startEditPost(post.id)"
+                  >
+                    编辑
+                  </button>
                   <button
                     v-if="post.status !== 'published'"
                     type="button"
@@ -118,6 +141,23 @@ interface ApiPost {
   updated_at: string
 }
 
+interface ApiTag {
+  name: string
+  slug: string
+}
+
+interface ApiPostDetail {
+  id: string
+  slug: string
+  title: string
+  excerpt: string
+  content_markdown: string
+  hero_image_url: string
+  category: string
+  status: string
+  tags: ApiTag[]
+}
+
 interface Post {
   id: string
   title: string
@@ -125,6 +165,19 @@ interface Post {
   status: 'published' | 'draft' | 'scheduled'
   views: number
   publishedAt: string
+}
+
+interface PostForm {
+  title: string
+  category: string
+  excerpt: string
+  content_markdown: string
+  hero_image_url: string
+  tags: string
+}
+
+interface NewPostForm extends PostForm {
+  status: 'draft' | 'published'
 }
 
 function mapStatus(s: string): 'published' | 'draft' | 'scheduled' {
@@ -139,6 +192,61 @@ function formatDate(iso?: string): string {
     return iso.slice(0, 10)
   } catch {
     return iso
+  }
+}
+
+function createEmptyPostForm(): PostForm {
+  return {
+    title: '',
+    category: '',
+    excerpt: '',
+    content_markdown: '',
+    hero_image_url: '',
+    tags: '',
+  }
+}
+
+function createEmptyNewPostForm(): NewPostForm {
+  return {
+    ...createEmptyPostForm(),
+    status: 'draft',
+  }
+}
+
+function toTagArray(input: string): string[] {
+  return input.split(',').map((t) => t.trim()).filter(Boolean)
+}
+
+function toTagInput(tags: ApiTag[] | undefined): string {
+  if (!tags || tags.length === 0) return ''
+  return tags.map((t) => t.name).filter(Boolean).join(', ')
+}
+
+function generateSlugFromTitle(title: string): string {
+  const normalized = title
+    .trim()
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\p{L}\p{N}\s-]/gu, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+
+  if (normalized) return normalized
+  return `post-${Date.now()}`
+}
+
+function toPostPayload(form: PostForm) {
+  const title = form.title.trim()
+  return {
+    title,
+    slug: generateSlugFromTitle(title),
+    category: form.category.trim(),
+    excerpt: form.excerpt.trim(),
+    content_markdown: form.content_markdown.trim(),
+    hero_image_url: form.hero_image_url.trim(),
+    tags: toTagArray(form.tags),
   }
 }
 
@@ -157,17 +265,29 @@ const posts = ref<Post[]>([])
 const loading = ref(false)
 const showCreateForm = ref(false)
 const creating = ref(false)
+const showEditForm = ref(false)
+const editing = ref(false)
+const editingPostID = ref<string | null>(null)
 
-const newPost = ref({
-  title: '',
-  slug: '',
-  category: '',
-  excerpt: '',
-  content_markdown: '',
-  hero_image_url: '',
-  tags: '',
-  status: 'draft',
-})
+const newPost = ref<NewPostForm>(createEmptyNewPostForm())
+const editPost = ref<PostForm>(createEmptyPostForm())
+
+function toggleCreateForm() {
+  showCreateForm.value = !showCreateForm.value
+  if (showCreateForm.value) {
+    closeEditForm()
+  }
+}
+
+function closeCreateForm() {
+  showCreateForm.value = false
+}
+
+function closeEditForm() {
+  showEditForm.value = false
+  editingPostID.value = null
+  editPost.value = createEmptyPostForm()
+}
 
 async function loadPosts() {
   loading.value = true
@@ -184,21 +304,15 @@ async function loadPosts() {
 }
 
 async function createPost() {
-  if (!newPost.value.title.trim() || !newPost.value.slug.trim()) return
+  if (!newPost.value.title.trim()) return
   creating.value = true
   try {
     await api.post('/admin/posts', {
-      title: newPost.value.title.trim(),
-      slug: newPost.value.slug.trim(),
-      category: newPost.value.category.trim(),
-      excerpt: newPost.value.excerpt.trim(),
-      content_markdown: newPost.value.content_markdown.trim(),
-      hero_image_url: newPost.value.hero_image_url.trim(),
-      tags: newPost.value.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+      ...toPostPayload(newPost.value),
       status: newPost.value.status,
     })
-    showCreateForm.value = false
-    newPost.value = { title: '', slug: '', category: '', excerpt: '', content_markdown: '', hero_image_url: '', tags: '', status: 'draft' }
+    closeCreateForm()
+    newPost.value = createEmptyNewPostForm()
     showToast('文章创建成功', 'success')
     await loadPosts()
   } catch (err) {
@@ -207,6 +321,45 @@ async function createPost() {
     showToast(msg, 'error')
   } finally {
     creating.value = false
+  }
+}
+
+async function startEditPost(id: string) {
+  try {
+    const detail = await api.get<ApiPostDetail>(`/admin/posts/${id}`)
+    editingPostID.value = detail.id
+    editPost.value = {
+      title: detail.title || '',
+      category: detail.category || '',
+      excerpt: detail.excerpt || '',
+      content_markdown: detail.content_markdown || '',
+      hero_image_url: detail.hero_image_url || '',
+      tags: toTagInput(detail.tags),
+    }
+    showEditForm.value = true
+    showCreateForm.value = false
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '加载文章详情失败'
+    console.error('[AdminPosts] startEditPost failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+async function updatePost() {
+  if (!editingPostID.value) return
+  if (!editPost.value.title.trim()) return
+  editing.value = true
+  try {
+    await api.put(`/admin/posts/${editingPostID.value}`, toPostPayload(editPost.value))
+    showToast('文章更新成功', 'success')
+    closeEditForm()
+    await loadPosts()
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '更新文章失败，请稍后重试'
+    console.error('[AdminPosts] updatePost failed:', err)
+    showToast(msg, 'error')
+  } finally {
+    editing.value = false
   }
 }
 
