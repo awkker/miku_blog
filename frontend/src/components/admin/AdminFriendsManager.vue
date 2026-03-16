@@ -6,8 +6,28 @@
           <h1 class="text-2xl font-semibold text-slate-900">友链管理</h1>
           <p class="mt-1 text-sm text-slate-600">维护友链展示、申请审核和站点健康检查。</p>
         </div>
-        <MikuButton variant="solid" aria-label="添加友链">+ 添加友链</MikuButton>
+        <MikuButton variant="solid" aria-label="添加友链" @click="showCreateForm = !showCreateForm">+ 添加友链</MikuButton>
       </div>
+    </LiquidGlassCard>
+
+    <!-- Create Form -->
+    <LiquidGlassCard v-if="showCreateForm" padding="24px">
+      <h2 class="mb-4 text-lg font-semibold text-slate-900">添加友链</h2>
+      <form class="space-y-3" @submit.prevent="createFriend">
+        <div class="grid gap-3 md:grid-cols-2">
+          <input v-model="newFriend.name" type="text" placeholder="站点名称 *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+          <input v-model="newFriend.url" type="text" placeholder="站点 URL *" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        </div>
+        <div class="grid gap-3 md:grid-cols-2">
+          <input v-model="newFriend.domain" type="text" placeholder="域名 (example.com)" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+          <input v-model="newFriend.avatar_url" type="text" placeholder="头像 URL" class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        </div>
+        <input v-model="newFriend.description" type="text" placeholder="站点描述" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
+        <div class="flex items-center gap-3">
+          <MikuButton type="submit" variant="solid" :disabled="creatingFriend">{{ creatingFriend ? '添加中...' : '添加友链' }}</MikuButton>
+          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="showCreateForm = false">取消</button>
+        </div>
+      </form>
     </LiquidGlassCard>
 
     <div class="grid gap-4 sm:grid-cols-3">
@@ -93,6 +113,7 @@
                     type="button"
                     class="rounded-xl border border-red-200/80 bg-white/50 px-2.5 py-1 text-xs text-red-600 transition hover:bg-red-50"
                     aria-label="删除友链"
+                    @click="deleteFriend(link.id)"
                   >
                     删除
                   </button>
@@ -107,10 +128,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
+import { api, ApiError, type PagedData } from '../../lib/api'
+import { showToast } from '../../stores/ui'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
 import MikuButton from '../ui/MikuButton.vue'
+
+interface ApiFriendLink {
+  id: string
+  name: string
+  description: string
+  url: string
+  domain: string
+  avatar_url: string
+  status: string
+  health_status: string
+  sort_order: number
+  created_at: string
+}
 
 interface FriendLink {
   id: string
@@ -121,14 +157,98 @@ interface FriendLink {
   createdAt: string
 }
 
-const friends = ref<FriendLink[]>([
-  { id: '1', name: 'DIYgod - DIYGOD', url: 'https://diygod.cc', status: 'approved', health: 'ok', createdAt: '2026-01-15' },
-  { id: '2', name: 'Sukka\'s Blog', url: 'https://blog.skk.moe', status: 'approved', health: 'ok', createdAt: '2026-01-20' },
-  { id: '3', name: '椎咲良田', url: 'https://sanshizhiduo.com', status: 'approved', health: 'ok', createdAt: '2026-02-05' },
-  { id: '4', name: 'Innei Space', url: 'https://innei.in', status: 'approved', health: 'ok', createdAt: '2026-02-12' },
-  { id: '5', name: '某新站', url: 'https://newsite.example.com', status: 'pending', health: 'ok', createdAt: '2026-03-12' },
-  { id: '6', name: '已失效站点', url: 'https://gone.example.com', status: 'approved', health: 'down', createdAt: '2025-11-08' },
-])
+function mapStatus(s: string): 'approved' | 'pending' | 'rejected' {
+  if (s === 'approved') return 'approved'
+  if (s === 'rejected') return 'rejected'
+  return 'pending'
+}
+
+function formatDate(iso: string): string {
+  try {
+    return iso.slice(0, 10)
+  } catch {
+    return iso
+  }
+}
+
+function mapFriend(item: ApiFriendLink): FriendLink {
+  return {
+    id: item.id,
+    name: item.name,
+    url: item.url,
+    status: mapStatus(item.status),
+    health: item.health_status === 'ok' ? 'ok' : 'down',
+    createdAt: formatDate(item.created_at),
+  }
+}
+
+const friends = ref<FriendLink[]>([])
+const loading = ref(false)
+const showCreateForm = ref(false)
+const creatingFriend = ref(false)
+
+const newFriend = ref({
+  name: '',
+  url: '',
+  domain: '',
+  avatar_url: '',
+  description: '',
+})
+
+async function loadFriends() {
+  loading.value = true
+  try {
+    const data = await api.get<PagedData<ApiFriendLink>>('/admin/friends?size=100')
+    friends.value = (data.items || []).map(mapFriend)
+  } catch (err) {
+    console.error('[AdminFriends] loadFriends failed:', err)
+    showToast('加载友链列表失败', 'error')
+    friends.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+async function createFriend() {
+  if (!newFriend.value.name.trim() || !newFriend.value.url.trim()) return
+  creatingFriend.value = true
+  try {
+    await api.post('/admin/friends', {
+      name: newFriend.value.name.trim(),
+      url: newFriend.value.url.trim(),
+      domain: newFriend.value.domain.trim(),
+      avatar_url: newFriend.value.avatar_url.trim(),
+      description: newFriend.value.description.trim(),
+      sort_order: 0,
+    })
+    showCreateForm.value = false
+    newFriend.value = { name: '', url: '', domain: '', avatar_url: '', description: '' }
+    showToast('友链添加成功', 'success')
+    await loadFriends()
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '添加友链失败'
+    console.error('[AdminFriends] createFriend failed:', err)
+    showToast(msg, 'error')
+  } finally {
+    creatingFriend.value = false
+  }
+}
+
+async function deleteFriend(id: string) {
+  try {
+    await api.delete(`/admin/friends/${id}`)
+    friends.value = friends.value.filter((f) => f.id !== id)
+    showToast('友链已删除', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '删除失败'
+    console.error('[AdminFriends] deleteFriend failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+onMounted(() => {
+  loadFriends()
+})
 
 const approvedCount = computed(() => friends.value.filter((f) => f.status === 'approved').length)
 const pendingCount = computed(() => friends.value.filter((f) => f.status === 'pending').length)

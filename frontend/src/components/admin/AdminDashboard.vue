@@ -29,8 +29,8 @@
     </div>
 
     <div class="grid gap-4 lg:grid-cols-2">
-      <DashboardChart title="近 7 日浏览量 / 评论趋势" />
-      <DashboardChart title="近 7 日点赞趋势" />
+      <DashboardChart title="近 7 日浏览量 / 评论趋势" :labels="viewLabels" :series="viewSeries" :loading="chartLoading" />
+      <DashboardChart title="近 7 日点赞趋势" :labels="likeLabels" :series="likeSeries" :loading="chartLoading" />
     </div>
 
     <div class="grid gap-4 lg:grid-cols-3">
@@ -59,9 +59,11 @@
 import { useStore } from '@nanostores/vue'
 import { computed, onMounted, ref } from 'vue'
 
+import { api } from '../../lib/api'
 import { authState, hydrateAuth } from '../../stores/auth'
 import { setScopeStatus } from '../../stores/loading'
 import DashboardChart from './DashboardChart.vue'
+import type { ChartSeries } from './DashboardChart.vue'
 import DashboardStatCard from './DashboardStatCard.vue'
 import ErrorState from '../ui/ErrorState.vue'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
@@ -75,11 +77,35 @@ interface StatItem {
   icon: 'article' | 'comment' | 'like' | 'link'
 }
 
+interface ApiStats {
+  total_posts: number
+  total_likes: number
+  pending_comments: number
+  friend_count: number
+}
+
+interface ViewTrendPoint {
+  day: string
+  pv: number
+  uv: number
+}
+
+interface TrendPoint {
+  day: string
+  value: number
+}
+
 const auth = useStore(authState)
 
 const stats = ref<StatItem[]>([])
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const mounted = ref(false)
+
+const viewLabels = ref<string[]>([])
+const viewSeries = ref<ChartSeries[]>([])
+const likeLabels = ref<string[]>([])
+const likeSeries = ref<ChartSeries[]>([])
+const chartLoading = ref(true)
 
 const userName = computed(() => {
   if (!mounted.value) {
@@ -89,10 +115,8 @@ const userName = computed(() => {
   return auth.value.user?.name ?? '管理员'
 })
 
-function sleep(duration = 680) {
-  return new Promise<void>((resolve) => {
-    setTimeout(resolve, duration)
-  })
+function fmtDay(iso: string) {
+  return iso.slice(5)
 }
 
 async function loadDashboard() {
@@ -100,18 +124,44 @@ async function loadDashboard() {
   setScopeStatus('adminDashboard', 'loading')
 
   try {
-    await sleep()
+    const data = await api.get<ApiStats>('/admin/dashboard/stats')
     stats.value = [
-      { label: '文章总数', value: '128', trend: '+8.2% 本周', icon: 'article' },
-      { label: '待审评论', value: '3', trend: '-2 本日', icon: 'comment' },
-      { label: '累计点赞', value: '4,298', trend: '+6.7% 本周', icon: 'like' },
-      { label: '友链数量', value: '24', trend: '+1 本月', icon: 'link' },
+      { label: '文章总数', value: String(data.total_posts), trend: '', icon: 'article' },
+      { label: '待审评论', value: String(data.pending_comments), trend: '', icon: 'comment' },
+      { label: '累计点赞', value: data.total_likes.toLocaleString(), trend: '', icon: 'like' },
+      { label: '友链数量', value: String(data.friend_count), trend: '', icon: 'link' },
     ]
     status.value = 'success'
     setScopeStatus('adminDashboard', 'success')
   } catch {
     status.value = 'error'
     setScopeStatus('adminDashboard', 'error')
+  }
+}
+
+async function loadTrends() {
+  chartLoading.value = true
+  try {
+    const [viewData, commentData, likeData] = await Promise.all([
+      api.get<ViewTrendPoint[]>('/admin/dashboard/trend/views?days=7'),
+      api.get<TrendPoint[]>('/admin/dashboard/trend/comments?days=7'),
+      api.get<TrendPoint[]>('/admin/dashboard/trend/likes?days=7'),
+    ])
+
+    viewLabels.value = (viewData || []).map((p) => fmtDay(p.day))
+    viewSeries.value = [
+      { name: '浏览量 (PV)', data: (viewData || []).map((p) => p.pv), color: '#39c5bb' },
+      { name: '评论数', data: (commentData || []).map((p) => p.value), color: '#c084fc' },
+    ]
+
+    likeLabels.value = (likeData || []).map((p) => fmtDay(p.day))
+    likeSeries.value = [
+      { name: '点赞数', data: (likeData || []).map((p) => p.value), color: '#39c5bb' },
+    ]
+  } catch {
+    // silent fail for charts
+  } finally {
+    chartLoading.value = false
   }
 }
 
@@ -128,6 +178,6 @@ onMounted(async () => {
     return
   }
 
-  await loadDashboard()
+  await Promise.all([loadDashboard(), loadTrends()])
 })
 </script>

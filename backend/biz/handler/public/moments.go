@@ -115,6 +115,24 @@ func (h *MomentsHandler) Repost(ctx context.Context, c *app.RequestContext) {
 	c.JSON(consts.StatusOK, dto.OK(map[string]bool{"reposted": reposted}))
 }
 
+func (h *MomentsHandler) ListComments(ctx context.Context, c *app.RequestContext) {
+	momentID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "invalid moment id"))
+		return
+	}
+	page := queryInt(c, "page", 1)
+	size := queryInt(c, "size", 50)
+	vid := getVisitorID(c)
+
+	items, total, err := h.svc.ListComments(ctx, momentID, page, size, vid)
+	if err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "failed to list comments"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OKPaged(items, total, page, size))
+}
+
 type createMomentCommentReq struct {
 	AuthorName string `json:"author_name"`
 	Content    string `json:"content"`

@@ -1,0 +1,19 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
+import AdminMomentsManager from '../../components/admin/AdminMomentsManager.vue'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="说说管理 | Miku Blog" description="后台说说管理" />
+    <AdminRouteGuard />
+  </head>
+  <body>
+    <AdminLayout activeKey="moments" pageTitle="说说管理">
+      <AdminMomentsManager client:load />
+    </AdminLayout>
+  </body>
+</html>

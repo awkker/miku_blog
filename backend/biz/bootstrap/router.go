@@ -102,6 +102,7 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 			mt.POST("", middleware.RateLimit(rdb, "mt:create", 3, 1*time.Minute), momentsH.Create)
 			mt.POST("/:id/like", middleware.RateLimit(rdb, "mt:like", 30, 1*time.Minute), momentsH.Like)
 			mt.POST("/:id/repost", middleware.RateLimit(rdb, "mt:repost", 10, 1*time.Minute), momentsH.Repost)
+			mt.GET("/:id/comments", momentsH.ListComments)
 			mt.POST("/:id/comments", middleware.RateLimit(rdb, "mt:comment", 5, 1*time.Minute), momentsH.CreateComment)
 			mt.POST("/comments/:id/like", middleware.RateLimit(rdb, "mt:clike", 30, 1*time.Minute), momentsH.CommentLike)
 		}

@@ -25,6 +25,7 @@ nanamiku-blog/
 │   ├── src/
 │   │   ├── components/     # UI 组件（按域分目录）
 │   │   ├── layouts/        # 页面布局
+│   │   ├── lib/            # 共享工具（api.ts 等）
 │   │   ├── pages/          # 基于文件的路由
 │   │   ├── stores/         # Nano Stores 状态
 │   │   └── styles/         # 全局样式
@@ -52,10 +53,10 @@ nanamiku-blog/
 | 路由 | 说明 |
 |------|------|
 | `/` | 开屏页，封面背景 + 液态玻璃 Dock 导航 + 音乐播放器 + 标题特效 |
-| `/blog` | 博客首页，文章列表 + 作者卡片 + 最新说说侧栏 |
-| `/blog/:slug` | 博客文章详情（Markdown 渲染 + 评论） |
+| `/blog` | 博客首页，从后端 API 动态加载文章列表 + 作者卡片 + 最新说说侧栏 |
+| `/blog/post?slug=xxx` | 博客文章详情（Markdown 渲染 + 点赞） |
 | `/about` | 关于页，GitHub 概览 + 创作者介绍 + 时间线 + 社交链接 |
-| `/moments` | 说说页，Twitter/X 风格动态流（发图、点赞、转发、评论） |
+| `/moments` | 说说页，Twitter/X 风格动态流（仅展示，管理员通过后台发布） |
 | `/guestbook` | 留言板，Reddit 风格嵌套评论（投票、回复、排序） |
 | `/friends` | 友情链接页，站点信息卡 + 友链墙 |
 | `/login` | 登录页 |
@@ -63,6 +64,7 @@ nanamiku-blog/
 | `/admin/posts` | 文章管理（创建 / 编辑 / 发布 / 定时发布） |
 | `/admin/comments` | 评论审核（批准 / 拒绝 / 删除） |
 | `/admin/friends` | 友链管理 |
+| `/admin/moments` | 说说管理（创建 / 删除） |
 
 ## 快速开始
 
@@ -118,6 +120,8 @@ npm run dev                   # 启动开发服务器 :4321
 - **MusicPlayer** -- 开屏页内嵌播放器（LRC 歌词滚动）
 - **HeroTitle** -- 鼠标悬停 squash-stretch 弹跳动画
 - **AboutGithubProfile** -- GitHub 数据可视化（ECharts）
+- **BlogFeed** -- 博客文章列表（从后端 API 动态加载，分页）
+- **BlogPostView** -- 博客文章详情（API 加载 + marked 渲染 Markdown）
 
 ## 构建
 

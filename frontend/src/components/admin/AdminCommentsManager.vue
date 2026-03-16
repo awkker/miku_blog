@@ -55,6 +55,7 @@
                     type="button"
                     class="rounded-xl border border-emerald-200/80 bg-white/50 px-2.5 py-1 text-xs text-emerald-600 transition hover:bg-emerald-50"
                     aria-label="通过评论"
+                    @click="approveComment(comment.id)"
                   >
                     通过
                   </button>
@@ -63,6 +64,7 @@
                     type="button"
                     class="rounded-xl border border-red-200/80 bg-white/50 px-2.5 py-1 text-xs text-red-600 transition hover:bg-red-50"
                     aria-label="驳回评论"
+                    @click="rejectComment(comment.id)"
                   >
                     驳回
                   </button>
@@ -71,6 +73,7 @@
                     type="button"
                     class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-600 transition hover:bg-slate-50"
                     aria-label="删除评论"
+                    @click="deleteComment(comment.id)"
                   >
                     删除
                   </button>
@@ -85,9 +88,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
+import { api, ApiError, type PagedData } from '../../lib/api'
+import { showToast } from '../../stores/ui'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
+
+interface ApiComment {
+  id: string
+  post_id: string
+  post_title: string
+  author_name: string
+  author_email: string
+  content: string
+  status: string
+  created_at: string
+}
 
 interface Comment {
   id: string
@@ -99,13 +115,89 @@ interface Comment {
   createdAt: string
 }
 
-const comments = ref<Comment[]>([
-  { id: '1', author: '小明', email: 'ming@example.com', content: '这篇 Astro Islands 的文章写得太棒了，收藏了！', postTitle: 'Astro + Vue Islands 实战指南', status: 'pending', createdAt: '2026-03-13 14:22' },
-  { id: '2', author: 'DevFan', email: 'devfan@example.com', content: '请问 Hertz 和 Gin 性能对比数据方便分享一下吗？', postTitle: '用 Go + Hertz 构建高性能博客后端', status: 'pending', createdAt: '2026-03-13 11:05' },
-  { id: '3', author: '路过的猫', email: 'cat@example.com', content: '液态玻璃效果确实很惊艳，学到了', postTitle: 'Tailwind CSS 液态玻璃设计实录', status: 'approved', createdAt: '2026-03-12 20:38' },
-  { id: '4', author: 'Spammer', email: 'spam@bad.com', content: '免费领取xxx，点击链接...', postTitle: 'Astro + Vue Islands 实战指南', status: 'rejected', createdAt: '2026-03-12 09:14' },
-  { id: '5', author: '阿水', email: 'shui@example.com', content: 'Nano Stores 比 Pinia 轻量太多了，适合 Islands 架构', postTitle: 'Nano Stores 跨框架状态共享', status: 'pending', createdAt: '2026-03-11 16:47' },
-])
+function mapStatus(s: string): 'pending' | 'approved' | 'rejected' {
+  if (s === 'approved') return 'approved'
+  if (s === 'rejected') return 'rejected'
+  return 'pending'
+}
+
+function formatDate(iso: string): string {
+  try {
+    const d = new Date(iso)
+    return d.toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+  } catch {
+    return iso
+  }
+}
+
+function mapComment(item: ApiComment): Comment {
+  return {
+    id: item.id,
+    author: item.author_name,
+    email: item.author_email,
+    content: item.content,
+    postTitle: item.post_title || '--',
+    status: mapStatus(item.status),
+    createdAt: formatDate(item.created_at),
+  }
+}
+
+const comments = ref<Comment[]>([])
+const loading = ref(false)
+
+async function loadComments() {
+  loading.value = true
+  try {
+    const data = await api.get<PagedData<ApiComment>>('/admin/comments?size=50')
+    comments.value = (data.items || []).map(mapComment)
+  } catch (err) {
+    console.error('[AdminComments] loadComments failed:', err)
+    showToast('加载评论列表失败', 'error')
+    comments.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+async function approveComment(id: string) {
+  try {
+    await api.post(`/admin/comments/${id}/approve`)
+    comments.value = comments.value.map((c) => c.id === id ? { ...c, status: 'approved' as const } : c)
+    showToast('评论已通过', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '操作失败'
+    console.error('[AdminComments] approveComment failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+async function rejectComment(id: string) {
+  try {
+    await api.post(`/admin/comments/${id}/reject`)
+    comments.value = comments.value.map((c) => c.id === id ? { ...c, status: 'rejected' as const } : c)
+    showToast('评论已驳回', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '操作失败'
+    console.error('[AdminComments] rejectComment failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+async function deleteComment(id: string) {
+  try {
+    await api.delete(`/admin/comments/${id}`)
+    comments.value = comments.value.filter((c) => c.id !== id)
+    showToast('评论已删除', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '删除失败'
+    console.error('[AdminComments] deleteComment failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+onMounted(() => {
+  loadComments()
+})
 
 const pendingCount = computed(() => comments.value.filter((c) => c.status === 'pending').length)
 

@@ -139,6 +139,7 @@ const navGroups = [
     section: 'CONTENT',
     items: [
       { key: 'posts', label: '文章管理', href: '/admin/posts' },
+      { key: 'moments', label: '说说管理', href: '/admin/moments' },
       { key: 'comments', label: '评论审核', href: '/admin/comments' },
     ],
   },

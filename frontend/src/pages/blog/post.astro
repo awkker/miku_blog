@@ -1,0 +1,19 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import BlogTopNav from '../../components/blog/BlogTopNav.astro'
+import BlogPostView from '../../components/blog/BlogPostView.vue'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="文章详情 | Miku Blog" description="Miku Blog 文章阅读" />
+  </head>
+  <body class="bg-slate-50 text-slate-800">
+    <BlogTopNav currentPath="/blog" />
+    <main class="relative min-h-screen px-4 pb-20 pt-20 sm:px-6 lg:px-8">
+      <div class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(57,197,187,0.12),transparent_50%),radial-gradient(circle_at_85%_18%,rgba(192,132,252,0.08),transparent_40%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)]" />
+      <BlogPostView client:load />
+    </main>
+  </body>
+</html>

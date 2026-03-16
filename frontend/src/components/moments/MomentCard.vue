@@ -253,10 +253,14 @@ function openPreview(idx: number) {
   previewIndex.value = idx
 }
 
-function submitComment() {
+async function submitComment() {
   if (!commentNickname.value.trim() || !commentContent.value.trim()) return
-  addComment({ momentId: props.moment.id, nickname: commentNickname.value, content: commentContent.value })
-  commentContent.value = ''
-  showToast('评论已发送', 'success')
+  try {
+    await addComment({ momentId: props.moment.id, nickname: commentNickname.value, content: commentContent.value })
+    commentContent.value = ''
+    showToast('评论已发送', 'success')
+  } catch {
+    showToast('评论发送失败，请稍后重试', 'error')
+  }
 }
 </script>
