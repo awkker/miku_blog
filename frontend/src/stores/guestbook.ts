@@ -130,18 +130,8 @@ export async function submitGuestbookMessage(draft: GuestbookDraft) {
     const created = await api.post<ApiGuestbookMessage>('/guestbook/messages', body)
     const newMessage = mapMessage(created)
 
-    if (draft.parentId) {
-      const msgs = guestbookMessages.get().map((m) => {
-        if (m.id === draft.parentId) {
-          return { ...m, replies: [...m.replies, newMessage] }
-        }
-        return m
-      })
-      guestbookMessages.set(msgs)
-    } else {
-      guestbookMessages.set([newMessage, ...guestbookMessages.get()])
-    }
-
+    // Messages now require moderation; refresh approved list instead of optimistic insert.
+    await loadGuestbookMessages()
     guestbookSubmitStatus.set('success')
     return newMessage
   } catch {

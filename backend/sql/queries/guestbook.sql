@@ -19,8 +19,8 @@ WHERE parent_id = $1 AND status = 'approved'
 ORDER BY created_at ASC;
 
 -- name: CreateGuestbookMessage :one
-INSERT INTO guestbook_messages (parent_id, author_name, author_website, content, ip_hash, ua_hash)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guestbook_messages (parent_id, author_name, author_website, content, ip_hash, ua_hash, status)
+VALUES ($1, $2, $3, $4, $5, $6, 'pending')
 RETURNING id, created_at;
 
 -- name: GetGuestbookVote :one
@@ -48,3 +48,38 @@ WHERE id = $1;
 SELECT message_id, vote
 FROM guestbook_votes
 WHERE visitor_id = $1 AND message_id = ANY($2::uuid[]);
+
+-- name: ListAdminGuestbookMessages :many
+SELECT m.id,
+       m.parent_id,
+       m.author_name,
+       m.author_website,
+       m.content,
+       m.status,
+       m.ip_hash,
+       m.created_at,
+       m.vote_score,
+       pm.author_name AS parent_author_name
+FROM guestbook_messages m
+LEFT JOIN guestbook_messages pm ON pm.id = m.parent_id
+WHERE (sqlc.narg('status')::moderation_status IS NULL OR m.status = sqlc.narg('status')::moderation_status)
+ORDER BY m.created_at DESC
+LIMIT $1 OFFSET $2;
+
+-- name: CountAdminGuestbookMessages :one
+SELECT count(*)
+FROM guestbook_messages
+WHERE (sqlc.narg('status')::moderation_status IS NULL OR status = sqlc.narg('status')::moderation_status);
+
+-- name: ApproveGuestbookMessage :exec
+UPDATE guestbook_messages
+SET status = 'approved', reviewed_by = $2
+WHERE id = $1;
+
+-- name: RejectGuestbookMessage :exec
+UPDATE guestbook_messages
+SET status = 'rejected', reviewed_by = $2
+WHERE id = $1;
+
+-- name: DeleteGuestbookMessage :exec
+DELETE FROM guestbook_messages WHERE id = $1;

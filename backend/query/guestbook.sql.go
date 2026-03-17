@@ -13,6 +13,35 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const approveGuestbookMessage = `-- name: ApproveGuestbookMessage :exec
+UPDATE guestbook_messages
+SET status = 'approved', reviewed_by = $2
+WHERE id = $1
+`
+
+type ApproveGuestbookMessageParams struct {
+	ID         uuid.UUID   `json:"id"`
+	ReviewedBy pgtype.UUID `json:"reviewed_by"`
+}
+
+func (q *Queries) ApproveGuestbookMessage(ctx context.Context, arg ApproveGuestbookMessageParams) error {
+	_, err := q.db.Exec(ctx, approveGuestbookMessage, arg.ID, arg.ReviewedBy)
+	return err
+}
+
+const countAdminGuestbookMessages = `-- name: CountAdminGuestbookMessages :one
+SELECT count(*)
+FROM guestbook_messages
+WHERE ($1::moderation_status IS NULL OR status = $1::moderation_status)
+`
+
+func (q *Queries) CountAdminGuestbookMessages(ctx context.Context, status NullModerationStatus) (int64, error) {
+	row := q.db.QueryRow(ctx, countAdminGuestbookMessages, status)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countGuestbookMessages = `-- name: CountGuestbookMessages :one
 SELECT count(*) FROM guestbook_messages WHERE status = 'approved' AND parent_id IS NULL
 `
@@ -25,8 +54,8 @@ func (q *Queries) CountGuestbookMessages(ctx context.Context) (int64, error) {
 }
 
 const createGuestbookMessage = `-- name: CreateGuestbookMessage :one
-INSERT INTO guestbook_messages (parent_id, author_name, author_website, content, ip_hash, ua_hash)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO guestbook_messages (parent_id, author_name, author_website, content, ip_hash, ua_hash, status)
+VALUES ($1, $2, $3, $4, $5, $6, 'pending')
 RETURNING id, created_at
 `
 
@@ -56,6 +85,15 @@ func (q *Queries) CreateGuestbookMessage(ctx context.Context, arg CreateGuestboo
 	var i CreateGuestbookMessageRow
 	err := row.Scan(&i.ID, &i.CreatedAt)
 	return i, err
+}
+
+const deleteGuestbookMessage = `-- name: DeleteGuestbookMessage :exec
+DELETE FROM guestbook_messages WHERE id = $1
+`
+
+func (q *Queries) DeleteGuestbookMessage(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteGuestbookMessage, id)
+	return err
 }
 
 const deleteGuestbookVote = `-- name: DeleteGuestbookVote :exec
@@ -115,6 +153,74 @@ func (q *Queries) GetVisitorVotesForMessages(ctx context.Context, arg GetVisitor
 	for rows.Next() {
 		var i GetVisitorVotesForMessagesRow
 		if err := rows.Scan(&i.MessageID, &i.Vote); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAdminGuestbookMessages = `-- name: ListAdminGuestbookMessages :many
+SELECT m.id,
+       m.parent_id,
+       m.author_name,
+       m.author_website,
+       m.content,
+       m.status,
+       m.ip_hash,
+       m.created_at,
+       m.vote_score,
+       pm.author_name AS parent_author_name
+FROM guestbook_messages m
+LEFT JOIN guestbook_messages pm ON pm.id = m.parent_id
+WHERE ($3::moderation_status IS NULL OR m.status = $3::moderation_status)
+ORDER BY m.created_at DESC
+LIMIT $1 OFFSET $2
+`
+
+type ListAdminGuestbookMessagesParams struct {
+	Limit  int32                `json:"limit"`
+	Offset int32                `json:"offset"`
+	Status NullModerationStatus `json:"status"`
+}
+
+type ListAdminGuestbookMessagesRow struct {
+	ID               uuid.UUID        `json:"id"`
+	ParentID         pgtype.UUID      `json:"parent_id"`
+	AuthorName       string           `json:"author_name"`
+	AuthorWebsite    string           `json:"author_website"`
+	Content          string           `json:"content"`
+	Status           ModerationStatus `json:"status"`
+	IpHash           string           `json:"ip_hash"`
+	CreatedAt        time.Time        `json:"created_at"`
+	VoteScore        int32            `json:"vote_score"`
+	ParentAuthorName pgtype.Text      `json:"parent_author_name"`
+}
+
+func (q *Queries) ListAdminGuestbookMessages(ctx context.Context, arg ListAdminGuestbookMessagesParams) ([]ListAdminGuestbookMessagesRow, error) {
+	rows, err := q.db.Query(ctx, listAdminGuestbookMessages, arg.Limit, arg.Offset, arg.Status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListAdminGuestbookMessagesRow{}
+	for rows.Next() {
+		var i ListAdminGuestbookMessagesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ParentID,
+			&i.AuthorName,
+			&i.AuthorWebsite,
+			&i.Content,
+			&i.Status,
+			&i.IpHash,
+			&i.CreatedAt,
+			&i.VoteScore,
+			&i.ParentAuthorName,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -237,6 +343,22 @@ WHERE id = $1
 
 func (q *Queries) RecalcGuestbookVoteScore(ctx context.Context, messageID uuid.UUID) error {
 	_, err := q.db.Exec(ctx, recalcGuestbookVoteScore, messageID)
+	return err
+}
+
+const rejectGuestbookMessage = `-- name: RejectGuestbookMessage :exec
+UPDATE guestbook_messages
+SET status = 'rejected', reviewed_by = $2
+WHERE id = $1
+`
+
+type RejectGuestbookMessageParams struct {
+	ID         uuid.UUID   `json:"id"`
+	ReviewedBy pgtype.UUID `json:"reviewed_by"`
+}
+
+func (q *Queries) RejectGuestbookMessage(ctx context.Context, arg RejectGuestbookMessageParams) error {
+	_, err := q.db.Exec(ctx, rejectGuestbookMessage, arg.ID, arg.ReviewedBy)
 	return err
 }
 

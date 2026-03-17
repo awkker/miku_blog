@@ -139,7 +139,7 @@ async function handleSubmit() {
   try {
     await submitGuestbookMessage({ nickname: form.nickname, website: form.website, message: form.message })
     form.message = ''
-    showToast('留言已发送', 'success')
+    showToast('留言已提交，等待审核', 'success')
   } catch {
     showToast('留言发送失败，请稍后重试', 'error')
   }
@@ -148,7 +148,7 @@ async function handleSubmit() {
 async function handleReply(payload: { parentId: string; nickname: string; message: string }) {
   try {
     await submitGuestbookMessage({ nickname: payload.nickname, message: payload.message, parentId: payload.parentId })
-    showToast('回复已发送', 'success')
+    showToast('回复已提交，等待审核', 'success')
   } catch {
     showToast('回复发送失败，请稍后重试', 'error')
   }

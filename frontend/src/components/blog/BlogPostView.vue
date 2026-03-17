@@ -106,6 +106,16 @@
         </div>
       </header>
 
+      <section class="mx-auto w-full max-w-[1100px]">
+        <PostLikeBar
+          :post-id="post.id"
+          :like-count="post.like_count"
+          :liked="post.liked"
+          :comment-count="commentCount"
+          @like-updated="handleLikeUpdated"
+        />
+      </section>
+
       <section class="mx-auto grid w-full max-w-[1100px] gap-6 xl:grid-cols-[minmax(0,1fr)_292px]">
         <article class="min-w-0">
           <div class="rounded-[26px] border border-slate-200/90 bg-white px-[22px] py-6 shadow-[0_14px_34px_rgba(15,23,42,0.08)]">
@@ -157,24 +167,6 @@
       </section>
 
       <section class="mx-auto w-full max-w-[1100px] space-y-4">
-        <div class="flex items-center justify-center border-t border-slate-200/60 pt-8">
-          <button
-            type="button"
-            :class="[
-              'inline-flex items-center gap-2 rounded-2xl border px-6 py-3 text-sm font-semibold transition',
-              post.liked
-                ? 'border-red-200 bg-red-50 text-red-500'
-                : 'border-slate-200 bg-white/60 text-slate-500 hover:border-red-200 hover:text-red-500',
-            ]"
-            @click="toggleLike"
-          >
-            <svg viewBox="0 0 24 24" :class="['h-5 w-5 stroke-[1.5] transition', post.liked ? 'fill-red-500 stroke-red-500' : 'fill-none stroke-current']">
-              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-            </svg>
-            {{ post.liked ? '已点赞' : '点赞' }} {{ post.like_count }}
-          </button>
-        </div>
-
         <div v-if="relatedPosts.length > 0" class="glass-layer rounded-2xl p-4">
           <h3 class="text-xs font-bold tracking-[0.16em] text-slate-700">相关文章</h3>
           <div class="mt-3 space-y-2.5">
@@ -190,6 +182,13 @@
             </a>
           </div>
         </div>
+
+        <PostCommentsSection
+          id="post-comments"
+          :post-id="post.id"
+          :initial-total="commentCount"
+          @count-updated="handleCommentCountUpdated"
+        />
       </section>
     </article>
   </div>
@@ -200,6 +199,8 @@ import { computed, onMounted, ref } from 'vue'
 
 import { api, type PagedData } from '../../lib/api'
 import MarkdownCodeEnhancer from './MarkdownCodeEnhancer.vue'
+import PostCommentsSection from './PostCommentsSection.vue'
+import PostLikeBar from './PostLikeBar.vue'
 import ReadingToc from './ReadingToc.vue'
 
 interface TagItem {
@@ -249,6 +250,7 @@ const tocHeadings = ref<HeadingItem[]>([])
 const relatedPosts = ref<PostItem[]>([])
 const wordCount = ref(0)
 const readingMinutes = ref(1)
+const commentCount = ref(0)
 
 const renderedContent = computed(() => markdownHtml.value)
 
@@ -438,6 +440,7 @@ async function loadPost() {
 
   try {
     post.value = await api.get<PostDetail>(`/posts/${encodeURIComponent(slug)}`)
+    commentCount.value = Number(post.value.comment_count || 0)
     const markdownSource = post.value.content_markdown || ''
     const rendered = await renderMarkdown(markdownSource)
     markdownHtml.value = rendered.html
@@ -455,15 +458,14 @@ async function loadPost() {
   }
 }
 
-async function toggleLike() {
+function handleLikeUpdated(payload: { liked: boolean; likeCount: number }) {
   if (!post.value) return
-  try {
-    const res = await api.post<{ liked: boolean }>(`/posts/${post.value.id}/like`)
-    post.value.liked = res.liked
-    post.value.like_count = Math.max(0, post.value.like_count + (res.liked ? 1 : -1))
-  } catch {
-    // intentionally silent
-  }
+  post.value.liked = payload.liked
+  post.value.like_count = payload.likeCount
+}
+
+function handleCommentCountUpdated(nextCount: number) {
+  commentCount.value = Number(nextCount || 0)
 }
 
 onMounted(() => {

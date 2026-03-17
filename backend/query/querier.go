@@ -16,6 +16,7 @@ type Querier interface {
 	AddPostTag(ctx context.Context, arg AddPostTagParams) error
 	ApproveComment(ctx context.Context, arg ApproveCommentParams) error
 	ApproveFriendLink(ctx context.Context, arg ApproveFriendLinkParams) error
+	ApproveGuestbookMessage(ctx context.Context, arg ApproveGuestbookMessageParams) error
 	CheckBlockedIP(ctx context.Context, ipHash string) (int64, error)
 	CheckMomentCommentLike(ctx context.Context, arg CheckMomentCommentLikeParams) (int64, error)
 	CheckMomentLike(ctx context.Context, arg CheckMomentLikeParams) (int64, error)
@@ -24,6 +25,7 @@ type Querier interface {
 	CleanExpiredTokens(ctx context.Context) error
 	CountAdminComments(ctx context.Context, status NullModerationStatus) (int64, error)
 	CountAdminFriendLinks(ctx context.Context) (int64, error)
+	CountAdminGuestbookMessages(ctx context.Context, status NullModerationStatus) (int64, error)
 	CountAdminPosts(ctx context.Context) (int64, error)
 	CountApprovedComments(ctx context.Context, postID uuid.UUID) (int64, error)
 	CountApprovedFriendLinks(ctx context.Context) (int64, error)
@@ -55,6 +57,7 @@ type Querier interface {
 	DecrementPostLikeCount(ctx context.Context, id uuid.UUID) error
 	DeleteComment(ctx context.Context, id uuid.UUID) error
 	DeleteFriendLink(ctx context.Context, id uuid.UUID) error
+	DeleteGuestbookMessage(ctx context.Context, id uuid.UUID) error
 	DeleteGuestbookVote(ctx context.Context, arg DeleteGuestbookVoteParams) error
 	DeleteMomentCommentLike(ctx context.Context, arg DeleteMomentCommentLikeParams) error
 	DeleteMomentLike(ctx context.Context, arg DeleteMomentLikeParams) error
@@ -93,6 +96,7 @@ type Querier interface {
 	IncrementPostViewCount(ctx context.Context, id uuid.UUID) error
 	ListAdminComments(ctx context.Context, arg ListAdminCommentsParams) ([]ListAdminCommentsRow, error)
 	ListAdminFriendLinks(ctx context.Context, arg ListAdminFriendLinksParams) ([]ListAdminFriendLinksRow, error)
+	ListAdminGuestbookMessages(ctx context.Context, arg ListAdminGuestbookMessagesParams) ([]ListAdminGuestbookMessagesRow, error)
 	ListAdminMoments(ctx context.Context, arg ListAdminMomentsParams) ([]ListAdminMomentsRow, error)
 	ListAdminPosts(ctx context.Context, arg ListAdminPostsParams) ([]ListAdminPostsRow, error)
 	ListApprovedComments(ctx context.Context, arg ListApprovedCommentsParams) ([]ListApprovedCommentsRow, error)
@@ -114,6 +118,7 @@ type Querier interface {
 	RecalcGuestbookVoteScore(ctx context.Context, messageID uuid.UUID) error
 	RejectComment(ctx context.Context, arg RejectCommentParams) error
 	RejectFriendLink(ctx context.Context, arg RejectFriendLinkParams) error
+	RejectGuestbookMessage(ctx context.Context, arg RejectGuestbookMessageParams) error
 	RevokeAllUserTokens(ctx context.Context, adminUserID uuid.UUID) error
 	RevokeRefreshToken(ctx context.Context, id uuid.UUID) error
 	SchedulePost(ctx context.Context, arg SchedulePostParams) error

@@ -42,10 +42,31 @@ async function request<T>(
     credentials: 'include',
   })
 
-  const body: ApiResponse<T> = await res.json()
+  const contentType = res.headers.get('content-type') || ''
+  let body: ApiResponse<T> | null = null
+  let rawText = ''
 
-  if (!res.ok || body.code !== 0) {
-    throw new ApiError(body.message || `Request failed (${res.status})`, body.code, res.status)
+  if (contentType.includes('application/json')) {
+    try {
+      body = await res.json()
+    } catch {
+      body = null
+    }
+  } else {
+    try {
+      rawText = (await res.text()).trim()
+    } catch {
+      rawText = ''
+    }
+  }
+
+  if (!res.ok) {
+    const message = body?.message || rawText || `Request failed (${res.status})`
+    throw new ApiError(message, body?.code ?? -1, res.status)
+  }
+
+  if (!body || body.code !== 0) {
+    throw new ApiError(body?.message || rawText || `Request failed (${res.status})`, body?.code ?? -1, res.status)
   }
 
   return body.data as T

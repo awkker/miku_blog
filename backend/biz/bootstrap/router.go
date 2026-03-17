@@ -141,6 +141,10 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 			adm.POST("/comments/:id/approve", moderationH.ApproveComment)
 			adm.POST("/comments/:id/reject", moderationH.RejectComment)
 			adm.DELETE("/comments/:id", moderationH.DeleteComment)
+			adm.GET("/guestbook/messages", moderationH.ListGuestbookMessages)
+			adm.POST("/guestbook/messages/:id/approve", moderationH.ApproveGuestbookMessage)
+			adm.POST("/guestbook/messages/:id/reject", moderationH.RejectGuestbookMessage)
+			adm.DELETE("/guestbook/messages/:id", moderationH.DeleteGuestbookMessage)
 
 			// Moderation - audit
 			adm.GET("/audit-logs", moderationH.ListAuditLogs)

@@ -74,6 +74,60 @@ func (h *ModerationHandler) DeleteComment(ctx context.Context, c *app.RequestCon
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
+func (h *ModerationHandler) ListGuestbookMessages(ctx context.Context, c *app.RequestContext) {
+	status := c.DefaultQuery("status", "")
+	page := queryInt(c, "page", 1)
+	size := queryInt(c, "size", 20)
+
+	items, total, err := h.svc.ListGuestbookMessages(ctx, status, page, size)
+	if err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "failed to list guestbook messages"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OKPaged(items, total, page, size))
+}
+
+func (h *ModerationHandler) ApproveGuestbookMessage(ctx context.Context, c *app.RequestContext) {
+	messageID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "invalid message id"))
+		return
+	}
+	adminID := getAdminID(c)
+	if err := h.svc.ApproveGuestbookMessage(ctx, messageID, adminID); err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "approve failed"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OK(nil))
+}
+
+func (h *ModerationHandler) RejectGuestbookMessage(ctx context.Context, c *app.RequestContext) {
+	messageID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "invalid message id"))
+		return
+	}
+	adminID := getAdminID(c)
+	if err := h.svc.RejectGuestbookMessage(ctx, messageID, adminID); err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "reject failed"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OK(nil))
+}
+
+func (h *ModerationHandler) DeleteGuestbookMessage(ctx context.Context, c *app.RequestContext) {
+	messageID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "invalid message id"))
+		return
+	}
+	if err := h.svc.DeleteGuestbookMessage(ctx, messageID); err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "delete failed"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OK(nil))
+}
+
 func (h *ModerationHandler) ListAuditLogs(ctx context.Context, c *app.RequestContext) {
 	page := queryInt(c, "page", 1)
 	size := queryInt(c, "size", 20)

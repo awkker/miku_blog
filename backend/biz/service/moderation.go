@@ -153,6 +153,84 @@ func (s *ModerationService) DeleteComment(ctx context.Context, commentID uuid.UU
 	return s.q.DeleteComment(ctx, commentID)
 }
 
+type AdminGuestbookMessageItem struct {
+	ID               uuid.UUID  `json:"id"`
+	ParentID         *uuid.UUID `json:"parent_id,omitempty"`
+	ParentAuthorName string     `json:"parent_author_name,omitempty"`
+	AuthorName       string     `json:"author_name"`
+	AuthorWebsite    string     `json:"author_website,omitempty"`
+	Content          string     `json:"content"`
+	Status           string     `json:"status"`
+	IPHash           string     `json:"ip_hash"`
+	VoteScore        int32      `json:"vote_score"`
+	CreatedAt        string     `json:"created_at"`
+}
+
+func (s *ModerationService) ListGuestbookMessages(ctx context.Context, status string, page, size int) ([]AdminGuestbookMessageItem, int64, error) {
+	var statusParam query.NullModerationStatus
+	if status != "" {
+		statusParam = query.NullModerationStatus{
+			ModerationStatus: query.ModerationStatus(status),
+			Valid:            true,
+		}
+	}
+
+	total, err := s.q.CountAdminGuestbookMessages(ctx, statusParam)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rows, err := s.q.ListAdminGuestbookMessages(ctx, query.ListAdminGuestbookMessagesParams{
+		Status: statusParam,
+		Limit:  int32(size),
+		Offset: int32((page - 1) * size),
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	items := make([]AdminGuestbookMessageItem, 0, len(rows))
+	for _, r := range rows {
+		item := AdminGuestbookMessageItem{
+			ID:            r.ID,
+			AuthorName:    r.AuthorName,
+			AuthorWebsite: r.AuthorWebsite,
+			Content:       r.Content,
+			Status:        string(r.Status),
+			IPHash:        r.IpHash,
+			VoteScore:     r.VoteScore,
+			CreatedAt:     r.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		}
+		if r.ParentID.Valid {
+			pid := uuid.UUID(r.ParentID.Bytes)
+			item.ParentID = &pid
+		}
+		if r.ParentAuthorName.Valid {
+			item.ParentAuthorName = r.ParentAuthorName.String
+		}
+		items = append(items, item)
+	}
+	return items, total, nil
+}
+
+func (s *ModerationService) ApproveGuestbookMessage(ctx context.Context, messageID, adminID uuid.UUID) error {
+	return s.q.ApproveGuestbookMessage(ctx, query.ApproveGuestbookMessageParams{
+		ID:         messageID,
+		ReviewedBy: pgtype.UUID{Bytes: adminID, Valid: true},
+	})
+}
+
+func (s *ModerationService) RejectGuestbookMessage(ctx context.Context, messageID, adminID uuid.UUID) error {
+	return s.q.RejectGuestbookMessage(ctx, query.RejectGuestbookMessageParams{
+		ID:         messageID,
+		ReviewedBy: pgtype.UUID{Bytes: adminID, Valid: true},
+	})
+}
+
+func (s *ModerationService) DeleteGuestbookMessage(ctx context.Context, messageID uuid.UUID) error {
+	return s.q.DeleteGuestbookMessage(ctx, messageID)
+}
+
 type AdminFriendItem struct {
 	ID           uuid.UUID `json:"id"`
 	Name         string    `json:"name"`
