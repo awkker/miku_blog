@@ -54,6 +54,7 @@ func (h *FriendsAdminHandler) Create(ctx context.Context, c *app.RequestContext)
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "create failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, adminID, "create", "friend_link", id.String(), map[string]string{"name": req.Name}, getClientIP(c))
 	c.JSON(consts.StatusCreated, dto.OK(map[string]interface{}{"id": id}))
 }
 
@@ -81,6 +82,7 @@ func (h *FriendsAdminHandler) Update(ctx context.Context, c *app.RequestContext)
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "update failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, getAdminID(c), "update", "friend_link", id.String(), map[string]string{"name": req.Name}, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -94,5 +96,6 @@ func (h *FriendsAdminHandler) Delete(ctx context.Context, c *app.RequestContext)
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "delete failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, getAdminID(c), "delete", "friend_link", id.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }

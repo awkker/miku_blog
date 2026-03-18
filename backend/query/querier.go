@@ -29,6 +29,7 @@ type Querier interface {
 	CountAdminPosts(ctx context.Context) (int64, error)
 	CountApprovedComments(ctx context.Context, postID uuid.UUID) (int64, error)
 	CountApprovedFriendLinks(ctx context.Context) (int64, error)
+	CountDraftPosts(ctx context.Context) (int64, error)
 	CountGuestbookMessages(ctx context.Context) (int64, error)
 	CountMomentComments(ctx context.Context, momentID uuid.UUID) (int64, error)
 	CountMoments(ctx context.Context) (int64, error)

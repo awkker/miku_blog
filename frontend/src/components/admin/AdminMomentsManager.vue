@@ -1,5 +1,6 @@
 <template>
   <section class="space-y-5">
+    <!-- Header -->
     <LiquidGlassCard padding="24px">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -10,29 +11,109 @@
       </div>
     </LiquidGlassCard>
 
-    <!-- Create Form -->
-    <LiquidGlassCard v-if="showCreateForm" padding="24px">
-      <h2 class="mb-4 text-lg font-semibold text-slate-900">发布新说说</h2>
-      <form class="space-y-3" @submit.prevent="createMoment">
-        <input v-model="newMoment.author_name" type="text" placeholder="作者昵称 *" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        <textarea v-model="newMoment.content" rows="4" placeholder="说说内容 *" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        <input v-model="newMoment.image_urls" type="text" placeholder="图片 URL (逗号分隔, 最多 4 张)" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        <div class="flex items-center gap-3">
-          <MikuButton type="submit" variant="solid" :disabled="creating">{{ creating ? '发布中...' : '发布说说' }}</MikuButton>
-          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="closeCreateForm">取消</button>
+    <!-- ===== Compose Card (Create) ===== -->
+    <LiquidGlassCard v-if="showCreateForm" padding="0px">
+      <form @submit.prevent="createMoment">
+        <!-- Content zone -->
+        <div class="compose-content-zone">
+          <textarea
+            v-model="newMoment.content"
+            placeholder="此刻的想法..."
+            class="compose-editor"
+          />
+        </div>
+
+        <!-- Image preview -->
+        <div v-if="createImagePreviews.length > 0" class="flex gap-2 px-7 pb-3">
+          <div v-for="(url, idx) in createImagePreviews" :key="idx" class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-200/50">
+            <img :src="url" alt="" class="h-full w-full object-cover" @error="($event.target as HTMLImageElement).style.display='none'" />
+          </div>
+        </div>
+
+        <!-- Metadata drawer -->
+        <div class="border-t border-slate-200/40">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 px-7 py-2.5 text-left text-xs font-medium uppercase tracking-widest text-slate-400 transition hover:text-slate-600"
+            @click="showCreateMeta = !showCreateMeta"
+          >
+            <svg class="h-3.5 w-3.5 transition-transform" :class="showCreateMeta ? 'rotate-90' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            发布设置
+          </button>
+          <div v-show="showCreateMeta" class="compose-meta-drawer">
+            <div class="compose-meta-row">
+              <label class="compose-meta-label">署名</label>
+              <input v-model="newMoment.author_name" type="text" placeholder="你的昵称" class="compose-meta-input" />
+            </div>
+            <div class="compose-meta-row">
+              <label class="compose-meta-label">图片</label>
+              <input v-model="newMoment.image_urls" type="text" placeholder="贴入图片链接, 用逗号分隔 (最多4张)" class="compose-meta-input" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom bar -->
+        <div class="flex items-center justify-between border-t border-slate-200/40 px-7 py-3.5">
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="inline-block h-1.5 w-1.5 rounded-full" :class="newMoment.content.length > 0 ? 'bg-miku' : 'bg-slate-300'" />
+            {{ charCount(newMoment.content) }}
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="button" class="rounded-xl px-4 py-2 text-sm text-slate-400 transition hover:bg-slate-100/50 hover:text-slate-600" @click="closeCreateForm">取消</button>
+            <MikuButton type="submit" variant="solid" :disabled="creating">{{ creating ? '发布中...' : '发布说说' }}</MikuButton>
+          </div>
         </div>
       </form>
     </LiquidGlassCard>
 
-    <LiquidGlassCard v-if="showEditForm" padding="24px">
-      <h2 class="mb-4 text-lg font-semibold text-slate-900">编辑说说</h2>
-      <form class="space-y-3" @submit.prevent="updateMoment">
-        <input v-model="editMoment.author_name" type="text" placeholder="作者昵称 *" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        <textarea v-model="editMoment.content" rows="4" placeholder="说说内容 *" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        <input v-model="editMoment.image_urls" type="text" placeholder="图片 URL (逗号分隔, 最多 4 张)" class="w-full rounded-xl border border-slate-200/80 bg-white/60 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-miku/50 focus:ring-1 focus:ring-miku/30" />
-        <div class="flex items-center gap-3">
-          <MikuButton type="submit" variant="solid" :disabled="editing">{{ editing ? '保存中...' : '保存修改' }}</MikuButton>
-          <button type="button" class="text-sm text-slate-500 hover:text-slate-700" @click="closeEditForm">取消</button>
+    <!-- ===== Compose Card (Edit) ===== -->
+    <LiquidGlassCard v-if="showEditForm" padding="0px">
+      <form @submit.prevent="updateMoment">
+        <div class="compose-content-zone">
+          <p class="mb-1 text-xs tracking-wide text-slate-400">编辑中</p>
+          <textarea
+            v-model="editMoment.content"
+            placeholder="此刻的想法..."
+            class="compose-editor"
+          />
+        </div>
+
+        <div v-if="editImagePreviews.length > 0" class="flex gap-2 px-7 pb-3">
+          <div v-for="(url, idx) in editImagePreviews" :key="idx" class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-slate-200/50">
+            <img :src="url" alt="" class="h-full w-full object-cover" @error="($event.target as HTMLImageElement).style.display='none'" />
+          </div>
+        </div>
+
+        <div class="border-t border-slate-200/40">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2 px-7 py-2.5 text-left text-xs font-medium uppercase tracking-widest text-slate-400 transition hover:text-slate-600"
+            @click="showEditMeta = !showEditMeta"
+          >
+            <svg class="h-3.5 w-3.5 transition-transform" :class="showEditMeta ? 'rotate-90' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            发布设置
+          </button>
+          <div v-show="showEditMeta" class="compose-meta-drawer">
+            <div class="compose-meta-row">
+              <label class="compose-meta-label">署名</label>
+              <input v-model="editMoment.author_name" type="text" placeholder="你的昵称" class="compose-meta-input" />
+            </div>
+            <div class="compose-meta-row">
+              <label class="compose-meta-label">图片</label>
+              <input v-model="editMoment.image_urls" type="text" placeholder="贴入图片链接, 用逗号分隔 (最多4张)" class="compose-meta-input" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between border-t border-slate-200/40 px-7 py-3.5">
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <span class="inline-block h-1.5 w-1.5 rounded-full" :class="editMoment.content.length > 0 ? 'bg-miku' : 'bg-slate-300'" />
+            {{ charCount(editMoment.content) }}
+          </div>
+          <div class="flex items-center gap-3">
+            <button type="button" class="rounded-xl px-4 py-2 text-sm text-slate-400 transition hover:bg-slate-100/50 hover:text-slate-600" @click="closeEditForm">取消</button>
+            <MikuButton type="submit" variant="solid" :disabled="editing">{{ editing ? '保存中...' : '保存修改' }}</MikuButton>
+          </div>
         </div>
       </form>
     </LiquidGlassCard>
@@ -55,13 +136,18 @@
 
     <!-- List -->
     <LiquidGlassCard padding="0px">
-      <div v-if="loading" class="px-5 py-8 text-center text-sm text-slate-400">加载中...</div>
-      <div v-else-if="momentsList.length === 0" class="px-5 py-8 text-center text-sm text-slate-400">暂无说说</div>
+      <div v-if="loading" class="flex items-center justify-center py-20">
+        <div class="loading-dot" /><div class="loading-dot delay-1" /><div class="loading-dot delay-2" />
+      </div>
+      <div v-else-if="momentsList.length === 0" class="py-20 text-center">
+        <p class="text-base text-slate-400">暂无说说</p>
+        <button type="button" class="mt-3 text-sm text-miku/80 transition hover:text-miku" @click="toggleCreateForm">发布第一条 &rarr;</button>
+      </div>
       <div v-else class="divide-y divide-slate-100/60">
         <div
           v-for="item in momentsList"
           :key="item.id"
-          class="px-5 py-4 transition hover:bg-white/40"
+          class="group px-5 py-4 transition-colors hover:bg-white/40"
         >
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
@@ -70,23 +156,23 @@
                 <span class="text-xs text-slate-400">{{ item.createdAt }}</span>
               </div>
               <p class="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{{ item.content }}</p>
-              <div v-if="item.images.length > 0" class="mt-2 flex gap-2">
+              <div v-if="item.images.length > 0" class="mt-2.5 flex gap-2">
                 <img
                   v-for="(img, idx) in item.images.slice(0, 4)"
                   :key="idx"
                   :src="img"
-                  :alt="`\u56fe\u7247 ${idx + 1}`"
-                  class="h-16 w-16 rounded-lg border border-slate-100 object-cover"
+                  :alt="`图片 ${idx + 1}`"
+                  class="h-16 w-16 rounded-xl border border-slate-100/80 object-cover transition-transform hover:scale-105"
                   loading="lazy"
                 />
               </div>
               <div class="mt-2 flex items-center gap-4 text-xs text-slate-400">
-                <span>{{ item.likes }} \u2764</span>
-                <span>{{ item.reposts }} \u21BB</span>
-                <span>{{ item.comments }} \u2709</span>
+                <span>{{ item.likes }} ❤</span>
+                <span>{{ item.reposts }} ↻</span>
+                <span>{{ item.comments }} ✉</span>
               </div>
             </div>
-            <div class="shrink-0">
+            <div class="shrink-0 opacity-0 transition group-hover:opacity-100">
               <button
                 type="button"
                 class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-700 transition hover:border-miku/40 hover:text-miku"
@@ -183,6 +269,21 @@ const editingMomentID = ref<string | null>(null)
 
 const newMoment = ref<MomentForm>(createEmptyMomentForm())
 const editMoment = ref<MomentForm>(createEmptyMomentForm())
+const showCreateMeta = ref(false)
+const showEditMeta = ref(false)
+
+const createImagePreviews = computed(() => {
+  return newMoment.value.image_urls.split(',').map((u: string) => u.trim()).filter(Boolean).slice(0, 4)
+})
+const editImagePreviews = computed(() => {
+  return editMoment.value.image_urls.split(',').map((u: string) => u.trim()).filter(Boolean).slice(0, 4)
+})
+
+function charCount(text: string): string {
+  const len = text.length
+  if (len === 0) return '0 字'
+  return `${len} 字`
+}
 
 function toggleCreateForm() {
   showCreateForm.value = !showCreateForm.value
@@ -277,3 +378,96 @@ onMounted(() => {
   loadMoments()
 })
 </script>
+
+<style scoped>
+/* ---- Compose Content Zone ---- */
+.compose-content-zone {
+  padding: 28px 28px 12px;
+}
+
+.compose-editor {
+  width: 100%;
+  min-height: 140px;
+  resize: vertical;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #1e293b;
+  caret-color: rgb(57, 197, 187);
+}
+
+.compose-editor::placeholder {
+  color: #cbd5e1;
+}
+
+.compose-editor::selection {
+  background: rgba(57, 197, 187, 0.18);
+}
+
+/* ---- Compose Metadata ---- */
+.compose-meta-drawer {
+  padding: 0 28px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compose-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compose-meta-label {
+  flex-shrink: 0;
+  width: 40px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  text-align: right;
+}
+
+.compose-meta-input {
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid rgba(203, 213, 225, 0.5);
+  background: rgba(255, 255, 255, 0.4);
+  padding: 7px 12px;
+  font-size: 0.8125rem;
+  color: #1e293b;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.compose-meta-input:focus {
+  border-color: rgba(57, 197, 187, 0.4);
+  box-shadow: 0 0 0 2px rgba(57, 197, 187, 0.08);
+}
+
+.compose-meta-input::placeholder {
+  color: #b0bec5;
+}
+
+/* ---- Loading Dots ---- */
+.loading-dot {
+  width: 6px;
+  height: 6px;
+  margin: 0 4px;
+  border-radius: 50%;
+  background: rgb(57, 197, 187);
+  opacity: 0.35;
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+
+.loading-dot.delay-1 { animation-delay: 0.2s; }
+.loading-dot.delay-2 { animation-delay: 0.4s; }
+
+@keyframes dot-pulse {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1.1); }
+}
+</style>

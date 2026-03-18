@@ -44,6 +44,7 @@ func (h *ModerationHandler) ApproveComment(ctx context.Context, c *app.RequestCo
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "approve failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, adminID, "approve", "comment", commentID.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -58,6 +59,7 @@ func (h *ModerationHandler) RejectComment(ctx context.Context, c *app.RequestCon
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "reject failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, adminID, "reject", "comment", commentID.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -71,6 +73,7 @@ func (h *ModerationHandler) DeleteComment(ctx context.Context, c *app.RequestCon
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "delete failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, getAdminID(c), "delete", "comment", commentID.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -98,6 +101,7 @@ func (h *ModerationHandler) ApproveGuestbookMessage(ctx context.Context, c *app.
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "approve failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, adminID, "approve", "guestbook", messageID.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -112,6 +116,7 @@ func (h *ModerationHandler) RejectGuestbookMessage(ctx context.Context, c *app.R
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "reject failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, adminID, "reject", "guestbook", messageID.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -125,6 +130,7 @@ func (h *ModerationHandler) DeleteGuestbookMessage(ctx context.Context, c *app.R
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "delete failed"))
 		return
 	}
+	_ = h.svc.LogAudit(ctx, getAdminID(c), "delete", "guestbook", messageID.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 

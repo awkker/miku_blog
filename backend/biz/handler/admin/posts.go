@@ -14,11 +14,12 @@ import (
 )
 
 type PostsAdminHandler struct {
-	svc *service.PostsService
+	svc    *service.PostsService
+	modSvc *service.ModerationService
 }
 
-func NewPostsAdminHandler(svc *service.PostsService) *PostsAdminHandler {
-	return &PostsAdminHandler{svc: svc}
+func NewPostsAdminHandler(svc *service.PostsService, modSvc *service.ModerationService) *PostsAdminHandler {
+	return &PostsAdminHandler{svc: svc, modSvc: modSvc}
 }
 
 func (h *PostsAdminHandler) List(ctx context.Context, c *app.RequestContext) {
@@ -86,6 +87,7 @@ func (h *PostsAdminHandler) Create(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "create post failed"))
 		return
 	}
+	_ = h.modSvc.LogAudit(ctx, adminID, "create", "post", id.String(), map[string]string{"title": req.Title}, getClientIP(c))
 	c.JSON(consts.StatusCreated, dto.OK(map[string]interface{}{"id": id}))
 }
 
@@ -127,6 +129,7 @@ func (h *PostsAdminHandler) Update(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "update failed"))
 		return
 	}
+	_ = h.modSvc.LogAudit(ctx, adminID, "update", "post", id.String(), map[string]string{"title": req.Title}, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -141,6 +144,7 @@ func (h *PostsAdminHandler) Publish(ctx context.Context, c *app.RequestContext) 
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "publish failed"))
 		return
 	}
+	_ = h.modSvc.LogAudit(ctx, adminID, "publish", "post", id.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -155,6 +159,7 @@ func (h *PostsAdminHandler) Unpublish(ctx context.Context, c *app.RequestContext
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "unpublish failed"))
 		return
 	}
+	_ = h.modSvc.LogAudit(ctx, adminID, "unpublish", "post", id.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -186,6 +191,7 @@ func (h *PostsAdminHandler) Schedule(ctx context.Context, c *app.RequestContext)
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "schedule failed"))
 		return
 	}
+	_ = h.modSvc.LogAudit(ctx, adminID, "schedule", "post", id.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }
 
@@ -199,5 +205,6 @@ func (h *PostsAdminHandler) Delete(ctx context.Context, c *app.RequestContext) {
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "delete failed"))
 		return
 	}
+	_ = h.modSvc.LogAudit(ctx, getAdminID(c), "delete", "post", id.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }

@@ -4,6 +4,9 @@ SELECT count(*) FROM posts WHERE status != 'draft';
 -- name: GetTotalLikeCount :one
 SELECT coalesce(sum(like_count), 0)::bigint FROM posts;
 
+-- name: CountDraftPosts :one
+SELECT count(*) FROM posts WHERE status = 'draft';
+
 -- name: GetDailyViewTrend :many
 SELECT day, coalesce(sum(pv), 0)::bigint AS pv, coalesce(sum(uv), 0)::bigint AS uv
 FROM post_view_daily

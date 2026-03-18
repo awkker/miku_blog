@@ -25,6 +25,7 @@ type DashboardStats struct {
 	TotalLikes   int64 `json:"total_likes"`
 	PendingCount int64 `json:"pending_comments"`
 	FriendCount  int64 `json:"friend_count"`
+	DraftCount   int64 `json:"draft_count"`
 }
 
 type TrendPoint struct {
@@ -55,12 +56,17 @@ func (s *DashboardService) GetStats(ctx context.Context) (*DashboardStats, error
 	if err != nil {
 		return nil, fmt.Errorf("friend count: %w", err)
 	}
+	draftCount, err := s.q.CountDraftPosts(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("draft count: %w", err)
+	}
 
 	return &DashboardStats{
 		TotalPosts:   totalPosts,
 		TotalLikes:   totalLikes,
 		PendingCount: pendingComments,
 		FriendCount:  friendCount,
+		DraftCount:   draftCount,
 	}, nil
 }
 

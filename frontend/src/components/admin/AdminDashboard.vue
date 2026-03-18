@@ -36,11 +36,29 @@
     <div class="grid gap-4 lg:grid-cols-3">
       <LiquidGlassCard padding="20px" class="lg:col-span-2">
         <h2 class="text-lg font-semibold text-slate-900">最近动态</h2>
-        <ul class="mt-4 space-y-3 text-sm text-slate-800">
-          <li class="rounded-2xl border border-white/20 bg-white/10 px-3 py-2">新文章草稿《Astro + Vue Islands 实战》待发布</li>
-          <li class="rounded-2xl border border-white/20 bg-white/10 px-3 py-2">评论审核队列中有 3 条待处理内容</li>
-          <li class="rounded-2xl border border-white/20 bg-white/10 px-3 py-2">友链申请箱新增 1 条请求</li>
-        </ul>
+        <div v-if="activityLoading && status === 'loading'" class="mt-4 flex items-center justify-center py-6">
+          <p class="text-sm text-slate-400">加载中...</p>
+        </div>
+        <div v-else class="mt-4 space-y-3 text-sm text-slate-800">
+          <div v-if="rawStats && rawStats.pending_comments > 0" class="flex items-center gap-2.5 rounded-2xl border border-amber-200/60 bg-amber-50/50 px-3 py-2">
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-400/20 text-[11px] text-amber-600">!</span>
+            <span class="text-amber-800">评论审核队列中有 <strong>{{ rawStats.pending_comments }}</strong> 条待处理</span>
+          </div>
+          <div v-if="rawStats && rawStats.draft_count > 0" class="flex items-center gap-2.5 rounded-2xl border border-sky-200/60 bg-sky-50/50 px-3 py-2">
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-sky-400/20 text-[11px] text-sky-600">&#x270E;</span>
+            <span class="text-sky-800">有 <strong>{{ rawStats.draft_count }}</strong> 篇草稿待发布</span>
+          </div>
+          <template v-if="activityItems.length > 0">
+            <div v-for="item in activityItems" :key="item.id" class="rounded-2xl border border-white/20 bg-white/10 px-3 py-2">
+              <div class="flex items-center justify-between gap-2">
+                <span>{{ formatAction(item) }}</span>
+                <span class="shrink-0 text-xs text-slate-400">{{ formatTime(item.created_at) }}</span>
+              </div>
+              <p v-if="item.admin_username" class="mt-0.5 text-xs text-slate-400">操作人：{{ item.admin_username }}</p>
+            </div>
+          </template>
+          <p v-else-if="!rawStats?.pending_comments && !rawStats?.draft_count" class="py-6 text-center text-sm text-slate-400">暂无操作记录</p>
+        </div>
       </LiquidGlassCard>
 
       <LiquidGlassCard padding="20px">
@@ -82,6 +100,7 @@ interface ApiStats {
   total_likes: number
   pending_comments: number
   friend_count: number
+  draft_count: number
 }
 
 interface ViewTrendPoint {
@@ -98,6 +117,7 @@ interface TrendPoint {
 const auth = useStore(authState)
 
 const stats = ref<StatItem[]>([])
+const rawStats = ref<ApiStats | null>(null)
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const mounted = ref(false)
 
@@ -106,6 +126,20 @@ const viewSeries = ref<ChartSeries[]>([])
 const likeLabels = ref<string[]>([])
 const likeSeries = ref<ChartSeries[]>([])
 const chartLoading = ref(true)
+
+interface AuditLogItem {
+  id: string
+  action: string
+  target_type: string
+  target_id: string
+  detail: unknown
+  ip: string
+  admin_username?: string
+  created_at: string
+}
+
+const activityItems = ref<AuditLogItem[]>([])
+const activityLoading = ref(true)
 
 const userName = computed(() => {
   if (!mounted.value) {
@@ -125,6 +159,7 @@ async function loadDashboard() {
 
   try {
     const data = await api.get<ApiStats>('/admin/dashboard/stats')
+    rawStats.value = data
     stats.value = [
       { label: '文章总数', value: String(data.total_posts), trend: '', icon: 'article' },
       { label: '待审评论', value: String(data.pending_comments), trend: '', icon: 'comment' },
@@ -165,6 +200,61 @@ async function loadTrends() {
   }
 }
 
+const ACTION_MAP: Record<string, string> = {
+  approve: '通过了',
+  reject: '拒绝了',
+  delete: '删除了',
+  create: '创建了',
+  update: '更新了',
+  publish: '发布了',
+  unpublish: '下架了',
+  schedule: '定时发布了',
+}
+
+const TARGET_MAP: Record<string, string> = {
+  comment: '评论',
+  post: '文章',
+  friend_link: '友链',
+  guestbook: '留言',
+  moment: '说说',
+}
+
+function formatAction(item: AuditLogItem): string {
+  const action = ACTION_MAP[item.action] || item.action
+  const target = TARGET_MAP[item.target_type] || item.target_type
+  return `${action}一条${target}`
+}
+
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso)
+    const now = new Date()
+    const diff = now.getTime() - d.getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 1) return '刚刚'
+    if (mins < 60) return `${mins} 分钟前`
+    const hours = Math.floor(mins / 60)
+    if (hours < 24) return `${hours} 小时前`
+    const days = Math.floor(hours / 24)
+    if (days < 7) return `${days} 天前`
+    return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+  } catch {
+    return iso
+  }
+}
+
+async function loadActivity() {
+  activityLoading.value = true
+  try {
+    const items = await api.get<AuditLogItem[]>('/admin/audit-logs?page=1&size=8')
+    activityItems.value = items || []
+  } catch {
+    activityItems.value = []
+  } finally {
+    activityLoading.value = false
+  }
+}
+
 onMounted(async () => {
   mounted.value = true
   hydrateAuth()
@@ -178,6 +268,6 @@ onMounted(async () => {
     return
   }
 
-  await Promise.all([loadDashboard(), loadTrends()])
+  await Promise.all([loadDashboard(), loadTrends(), loadActivity()])
 })
 </script>

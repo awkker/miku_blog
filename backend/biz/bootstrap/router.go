@@ -66,8 +66,8 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 	friendsAdminH := admin.NewFriendsAdminHandler(moderationSvc)
 	postsH := public.NewPostsHandler(postsSvc)
 	postCommentsH := public.NewPostCommentsHandler(postCommentsSvc)
-	postsAdminH := admin.NewPostsAdminHandler(postsSvc)
-	momentsAdminH := admin.NewMomentsAdminHandler(momentsSvc)
+	postsAdminH := admin.NewPostsAdminHandler(postsSvc, moderationSvc)
+	momentsAdminH := admin.NewMomentsAdminHandler(momentsSvc, moderationSvc)
 	weatherH := public.NewWeatherHandler(weatherSvc)
 
 	api := h.Group("/api/v1")

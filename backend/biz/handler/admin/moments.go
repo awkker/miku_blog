@@ -13,11 +13,12 @@ import (
 )
 
 type MomentsAdminHandler struct {
-	svc *service.MomentsService
+	svc    *service.MomentsService
+	modSvc *service.ModerationService
 }
 
-func NewMomentsAdminHandler(svc *service.MomentsService) *MomentsAdminHandler {
-	return &MomentsAdminHandler{svc: svc}
+func NewMomentsAdminHandler(svc *service.MomentsService, modSvc *service.ModerationService) *MomentsAdminHandler {
+	return &MomentsAdminHandler{svc: svc, modSvc: modSvc}
 }
 
 type updateMomentReq struct {
@@ -51,6 +52,6 @@ func (h *MomentsAdminHandler) Update(ctx context.Context, c *app.RequestContext)
 		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "update moment failed"))
 		return
 	}
-
+	_ = h.modSvc.LogAudit(ctx, getAdminID(c), "update", "moment", id.String(), nil, getClientIP(c))
 	c.JSON(consts.StatusOK, dto.OK(nil))
 }

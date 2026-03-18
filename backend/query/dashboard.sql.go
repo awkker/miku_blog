@@ -12,6 +12,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countDraftPosts = `-- name: CountDraftPosts :one
+SELECT count(*) FROM posts WHERE status = 'draft'
+`
+
+func (q *Queries) CountDraftPosts(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countDraftPosts)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getDailyCommentTrend = `-- name: GetDailyCommentTrend :many
 SELECT created_at::date AS day, count(*) AS total
 FROM post_comments

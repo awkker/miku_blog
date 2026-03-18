@@ -58,6 +58,16 @@ func (h *DashboardHandler) LikeTrend(ctx context.Context, c *app.RequestContext)
 	c.JSON(consts.StatusOK, dto.OK(points))
 }
 
+func getClientIP(c *app.RequestContext) string {
+	if ip := c.GetHeader("X-Real-IP"); len(ip) > 0 {
+		return string(ip)
+	}
+	if ip := c.GetHeader("X-Forwarded-For"); len(ip) > 0 {
+		return string(ip)
+	}
+	return c.ClientIP()
+}
+
 func queryInt(c *app.RequestContext, key string, def int) int {
 	v := c.DefaultQuery(key, "")
 	if v == "" {
