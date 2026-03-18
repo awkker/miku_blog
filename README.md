@@ -52,15 +52,15 @@ nanamiku-blog/
 
 | 路由 | 说明 |
 |------|------|
-| `/` | 开屏页，封面背景 + 液态玻璃 Dock 导航 + 音乐播放器 + 标题特效 |
-| `/blog` | 博客首页，从后端 API 动态加载文章列表 + 作者卡片 + 最新说说侧栏 |
+| `/` | 开屏页，视差封面轮播 + 液态玻璃 Dock 导航 + 音乐播放器 + 标题特效 |
+| `/blog` | 博客首页，动态文章列表 + 作者统计卡片 + 站点趋势图 + 最新说说侧栏 |
 | `/blog/post?slug=xxx` | 博客文章详情（Markdown 渲染 + 点赞） |
 | `/about` | 关于页，GitHub 概览 + 创作者介绍 + 时间线 + 社交链接 |
 | `/moments` | 说说页，Twitter/X 风格动态流（仅展示，管理员通过后台发布） |
 | `/guestbook` | 留言板，Reddit 风格嵌套评论（投票、回复、排序） |
 | `/friends` | 友情链接页，站点信息卡 + 友链墙 |
 | `/login` | 登录页 |
-| `/admin` | 后台仪表盘（需登录） |
+| `/admin` | 后台仪表盘（实时统计 + 审计日志动态 + 待审/草稿提醒） |
 | `/admin/posts` | 文章管理（创建 / 编辑 / 发布 / 定时发布） |
 | `/admin/comments` | 评论审核（批准 / 拒绝 / 删除） |
 | `/admin/friends` | 友链管理 |
@@ -117,8 +117,12 @@ npm run dev                   # 启动开发服务器 :4321
 ## 特色组件
 
 - **LiquidGlassCard** -- 项目统一液态玻璃容器
+- **HeroParallax** -- 开屏视差封面（鼠标追踪 3D 旋转 + 交叉淡入切换）
+- **HeroShuffleBtn** -- Dock 栏随机换图按钮
 - **MusicPlayer** -- 开屏页内嵌播放器（LRC 歌词滚动）
 - **HeroTitle** -- 鼠标悬停 squash-stretch 弹跳动画
+- **AuthorStats** -- 博客侧栏动态统计（文章数 / 分类 / 总浏览）
+- **SiteTrend** -- 博客侧栏 SVG 趋势图（近 7 天访问热度）
 - **AboutGithubProfile** -- GitHub 数据可视化（ECharts）
 - **BlogFeed** -- 博客文章列表（从后端 API 动态加载，分页）
 - **BlogPostView** -- 博客文章详情（API 加载 + marked 渲染 Markdown）
