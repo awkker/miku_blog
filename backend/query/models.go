@@ -252,6 +252,51 @@ type AdminUser struct {
 	UpdatedAt    time.Time          `json:"updated_at"`
 }
 
+type AnalyticsPageview struct {
+	ID           uuid.UUID   `json:"id"`
+	SessionID    uuid.UUID   `json:"session_id"`
+	VisitorID    pgtype.UUID `json:"visitor_id"`
+	Path         string      `json:"path"`
+	Title        string      `json:"title"`
+	Referrer     string      `json:"referrer"`
+	ReferrerHost string      `json:"referrer_host"`
+	Channel      string      `json:"channel"`
+	Browser      string      `json:"browser"`
+	Os           string      `json:"os"`
+	Device       string      `json:"device"`
+	CountryCode  string      `json:"country_code"`
+	Region       string      `json:"region"`
+	City         string      `json:"city"`
+	Timezone     string      `json:"timezone"`
+	Language     string      `json:"language"`
+	OccurredAt   time.Time   `json:"occurred_at"`
+	CreatedAt    time.Time   `json:"created_at"`
+}
+
+type AnalyticsSession struct {
+	ID           uuid.UUID   `json:"id"`
+	SessionKey   string      `json:"session_key"`
+	VisitorID    pgtype.UUID `json:"visitor_id"`
+	StartedAt    time.Time   `json:"started_at"`
+	LastSeenAt   time.Time   `json:"last_seen_at"`
+	EntryPath    string      `json:"entry_path"`
+	ExitPath     string      `json:"exit_path"`
+	Referrer     string      `json:"referrer"`
+	ReferrerHost string      `json:"referrer_host"`
+	Channel      string      `json:"channel"`
+	Browser      string      `json:"browser"`
+	Os           string      `json:"os"`
+	Device       string      `json:"device"`
+	CountryCode  string      `json:"country_code"`
+	Region       string      `json:"region"`
+	City         string      `json:"city"`
+	Timezone     string      `json:"timezone"`
+	Language     string      `json:"language"`
+	Pageviews    int32       `json:"pageviews"`
+	CreatedAt    time.Time   `json:"created_at"`
+	UpdatedAt    time.Time   `json:"updated_at"`
+}
+
 type AuditLog struct {
 	ID         uuid.UUID       `json:"id"`
 	AdminID    pgtype.UUID     `json:"admin_id"`

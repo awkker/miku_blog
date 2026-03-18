@@ -58,6 +58,17 @@ func (h *DashboardHandler) LikeTrend(ctx context.Context, c *app.RequestContext)
 	c.JSON(consts.StatusOK, dto.OK(points))
 }
 
+func (h *DashboardHandler) Analytics(ctx context.Context, c *app.RequestContext) {
+	rangeKey := c.DefaultQuery("range", "24h")
+	offset := queryInt(c, "offset", 0)
+	data, err := h.svc.GetAnalyticsOverview(ctx, rangeKey, offset)
+	if err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "failed to get analytics overview"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OK(data))
+}
+
 func getClientIP(c *app.RequestContext) string {
 	if ip := c.GetHeader("X-Real-IP"); len(ip) > 0 {
 		return string(ip)

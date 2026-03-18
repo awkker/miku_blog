@@ -61,6 +61,7 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 	guestbookH := public.NewGuestbookHandler(guestbookSvc)
 	momentsH := public.NewMomentsHandler(momentsSvc)
 	friendsH := public.NewFriendsHandler(friendsSvc)
+	analyticsH := public.NewAnalyticsHandler(dashboardSvc)
 	dashboardH := admin.NewDashboardHandler(dashboardSvc)
 	moderationH := admin.NewModerationHandler(moderationSvc)
 	friendsAdminH := admin.NewFriendsAdminHandler(moderationSvc)
@@ -113,6 +114,7 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 
 		// Friends
 		api.GET("/friends", friendsH.List)
+		api.POST("/analytics/collect", middleware.RateLimit(rdb, "analytics:collect", 240, 1*time.Minute), analyticsH.Collect)
 
 		// Posts (public)
 		posts := api.Group("/posts")
@@ -135,6 +137,7 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 			adm.GET("/dashboard/trend/views", dashboardH.ViewTrend)
 			adm.GET("/dashboard/trend/comments", dashboardH.CommentTrend)
 			adm.GET("/dashboard/trend/likes", dashboardH.LikeTrend)
+			adm.GET("/dashboard/analytics", dashboardH.Analytics)
 
 			// Moderation - comments
 			adm.GET("/comments", moderationH.ListComments)

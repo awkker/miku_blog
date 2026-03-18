@@ -27,6 +27,10 @@ type Querier interface {
 	CountAdminFriendLinks(ctx context.Context) (int64, error)
 	CountAdminGuestbookMessages(ctx context.Context, status NullModerationStatus) (int64, error)
 	CountAdminPosts(ctx context.Context) (int64, error)
+	CountAnalyticsBouncedVisits(ctx context.Context, arg CountAnalyticsBouncedVisitsParams) (int64, error)
+	CountAnalyticsViews(ctx context.Context, arg CountAnalyticsViewsParams) (int64, error)
+	CountAnalyticsVisitors(ctx context.Context, arg CountAnalyticsVisitorsParams) (int64, error)
+	CountAnalyticsVisits(ctx context.Context, arg CountAnalyticsVisitsParams) (int64, error)
 	CountApprovedComments(ctx context.Context, postID uuid.UUID) (int64, error)
 	CountApprovedFriendLinks(ctx context.Context) (int64, error)
 	CountDraftPosts(ctx context.Context) (int64, error)
@@ -36,6 +40,7 @@ type Querier interface {
 	CountPendingComments(ctx context.Context) (int64, error)
 	CountPublishedPosts(ctx context.Context) (int64, error)
 	CreateAdminUser(ctx context.Context, arg CreateAdminUserParams) (CreateAdminUserRow, error)
+	CreateAnalyticsPageview(ctx context.Context, arg CreateAnalyticsPageviewParams) error
 	CreateAuditLog(ctx context.Context, arg CreateAuditLogParams) error
 	CreateFriendLink(ctx context.Context, arg CreateFriendLinkParams) (CreateFriendLinkRow, error)
 	CreateFriendLinkHealthLog(ctx context.Context, arg CreateFriendLinkHealthLogParams) error
@@ -67,6 +72,9 @@ type Querier interface {
 	DeletePostLike(ctx context.Context, arg DeletePostLikeParams) error
 	GetAdminByID(ctx context.Context, id uuid.UUID) (GetAdminByIDRow, error)
 	GetAdminByUsername(ctx context.Context, username string) (AdminUser, error)
+	GetAnalyticsAverageVisitDurationSeconds(ctx context.Context, arg GetAnalyticsAverageVisitDurationSecondsParams) (float64, error)
+	GetAnalyticsTrafficHeatmap(ctx context.Context, arg GetAnalyticsTrafficHeatmapParams) ([]GetAnalyticsTrafficHeatmapRow, error)
+	GetAnalyticsTrend(ctx context.Context, arg GetAnalyticsTrendParams) ([]GetAnalyticsTrendRow, error)
 	GetDailyCommentTrend(ctx context.Context, createdAt time.Time) ([]GetDailyCommentTrendRow, error)
 	GetDailyLikeTrend(ctx context.Context, createdAt time.Time) ([]GetDailyLikeTrendRow, error)
 	GetDailyViewTrend(ctx context.Context, day pgtype.Date) ([]GetDailyViewTrendRow, error)
@@ -100,6 +108,17 @@ type Querier interface {
 	ListAdminGuestbookMessages(ctx context.Context, arg ListAdminGuestbookMessagesParams) ([]ListAdminGuestbookMessagesRow, error)
 	ListAdminMoments(ctx context.Context, arg ListAdminMomentsParams) ([]ListAdminMomentsRow, error)
 	ListAdminPosts(ctx context.Context, arg ListAdminPostsParams) ([]ListAdminPostsRow, error)
+	ListAnalyticsBrowsers(ctx context.Context, arg ListAnalyticsBrowsersParams) ([]ListAnalyticsBrowsersRow, error)
+	ListAnalyticsChannels(ctx context.Context, arg ListAnalyticsChannelsParams) ([]ListAnalyticsChannelsRow, error)
+	ListAnalyticsCities(ctx context.Context, arg ListAnalyticsCitiesParams) ([]ListAnalyticsCitiesRow, error)
+	ListAnalyticsCountries(ctx context.Context, arg ListAnalyticsCountriesParams) ([]ListAnalyticsCountriesRow, error)
+	ListAnalyticsDevices(ctx context.Context, arg ListAnalyticsDevicesParams) ([]ListAnalyticsDevicesRow, error)
+	ListAnalyticsEntryPaths(ctx context.Context, arg ListAnalyticsEntryPathsParams) ([]ListAnalyticsEntryPathsRow, error)
+	ListAnalyticsExitPaths(ctx context.Context, arg ListAnalyticsExitPathsParams) ([]ListAnalyticsExitPathsRow, error)
+	ListAnalyticsOperatingSystems(ctx context.Context, arg ListAnalyticsOperatingSystemsParams) ([]ListAnalyticsOperatingSystemsRow, error)
+	ListAnalyticsPageStats(ctx context.Context, arg ListAnalyticsPageStatsParams) ([]ListAnalyticsPageStatsRow, error)
+	ListAnalyticsReferrers(ctx context.Context, arg ListAnalyticsReferrersParams) ([]ListAnalyticsReferrersRow, error)
+	ListAnalyticsRegions(ctx context.Context, arg ListAnalyticsRegionsParams) ([]ListAnalyticsRegionsRow, error)
 	ListApprovedComments(ctx context.Context, arg ListApprovedCommentsParams) ([]ListApprovedCommentsRow, error)
 	ListApprovedFriendLinks(ctx context.Context) ([]ListApprovedFriendLinksRow, error)
 	ListAuditLogs(ctx context.Context, arg ListAuditLogsParams) ([]ListAuditLogsRow, error)
@@ -133,6 +152,7 @@ type Querier interface {
 	UpdateFriendLinkHealth(ctx context.Context, arg UpdateFriendLinkHealthParams) error
 	UpdateMoment(ctx context.Context, arg UpdateMomentParams) error
 	UpdatePost(ctx context.Context, arg UpdatePostParams) error
+	UpsertAnalyticsSession(ctx context.Context, arg UpsertAnalyticsSessionParams) (UpsertAnalyticsSessionRow, error)
 	UpsertGuestbookVote(ctx context.Context, arg UpsertGuestbookVoteParams) error
 	UpsertPostViewDaily(ctx context.Context, arg UpsertPostViewDailyParams) error
 	UpsertTag(ctx context.Context, arg UpsertTagParams) (uuid.UUID, error)

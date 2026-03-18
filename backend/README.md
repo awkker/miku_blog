@@ -58,6 +58,11 @@ cp .env.example .env
 go run cmd/migrate/main.go
 ```
 
+Migration runner now tracks versions in `schema_migrations`.
+- Re-running `go run cmd/migrate/main.go` is safe.
+- Already applied versions are skipped automatically.
+- Legacy databases without migration records are backfilled on duplicate-object detection.
+
 ### 4. Seed admin user
 
 ```bash
@@ -94,6 +99,7 @@ Server runs at `http://localhost:8080`.
 | POST | `/api/v1/moments/:id/comments` | Comment on moment |
 | POST | `/api/v1/moments/comments/:id/like` | Like moment comment |
 | GET | `/api/v1/friends` | List friend links |
+| POST | `/api/v1/analytics/collect` | Collect pageview analytics |
 | GET | `/api/v1/posts` | List published posts |
 | GET | `/api/v1/posts/hot` | Hot posts |
 | GET | `/api/v1/posts/search?q=` | Full-text search |
@@ -111,6 +117,7 @@ Server runs at `http://localhost:8080`.
 | GET | `/api/v1/admin/dashboard/trend/views` | View trend |
 | GET | `/api/v1/admin/dashboard/trend/comments` | Comment trend |
 | GET | `/api/v1/admin/dashboard/trend/likes` | Like trend |
+| GET | `/api/v1/admin/dashboard/analytics?range=24h|7d|30d&offset=0` | Analytics overview |
 | GET | `/api/v1/admin/comments` | List all comments |
 | POST | `/api/v1/admin/comments/:id/approve` | Approve comment |
 | POST | `/api/v1/admin/comments/:id/reject` | Reject comment |

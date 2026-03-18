@@ -60,7 +60,7 @@ nanamiku-blog/
 | `/guestbook` | 留言板，Reddit 风格嵌套评论（投票、回复、排序） |
 | `/friends` | 友情链接页，站点信息卡 + 友链墙 |
 | `/login` | 登录页 |
-| `/admin` | 后台仪表盘（实时统计 + 审计日志动态 + 待审/草稿提醒） |
+| `/admin` | 后台仪表盘（Traffic Overview、Pages/Sources/Environment/Location、Geo Distribution、Traffic 热力矩阵、近期事项） |
 | `/admin/posts` | 文章管理（创建 / 编辑 / 发布 / 定时发布） |
 | `/admin/comments` | 评论审核（批准 / 拒绝 / 删除） |
 | `/admin/friends` | 友链管理 |
@@ -73,7 +73,7 @@ nanamiku-blog/
 ```bash
 cd backend
 docker-compose up -d          # PostgreSQL + Redis
-go run cmd/migrate/main.go    # 执行数据库迁移
+go run cmd/migrate/main.go    # 执行数据库迁移（可重复执行，已应用版本会自动跳过）
 go run cmd/seed/main.go       # 创建管理员账号（默认 admin / admin123）
 go run main.go                # 启动 API 服务 :8080
 ```
@@ -103,16 +103,26 @@ npm run dev                   # 启动开发服务器 :4321
 | 留言板 | `GET /guestbook/messages` `POST /guestbook/messages` `POST /guestbook/messages/:id/vote` |
 | 说说 | `GET /moments` `GET /moments/latest` `POST /moments` `POST /moments/:id/like` `POST /moments/:id/repost` `POST /moments/:id/comments` |
 | 友链 | `GET /friends` |
+| Analytics | `POST /analytics/collect` |
 
 **管理接口** (`/api/v1/admin`，需 JWT)
 
 | 模块 | 端点 |
 |------|------|
-| 仪表盘 | `GET /dashboard/stats` `GET /dashboard/trend/views\|comments\|likes` |
+| 仪表盘 | `GET /dashboard/stats` `GET /dashboard/trend/views\|comments\|likes` `GET /dashboard/analytics?range=24h\|7d\|30d&offset=0` |
 | 文章管理 | `GET\|POST /posts` `PUT\|DELETE /posts/:id` `POST /posts/:id/publish\|unpublish\|schedule` |
 | 评论审核 | `GET /comments` `POST /comments/:id/approve\|reject` `DELETE /comments/:id` |
 | 友链管理 | `GET\|POST /friends` `PUT\|DELETE /friends/:id` |
 | 审计日志 | `GET /audit-logs` |
+
+## Analytics 仪表盘
+
+- 顶部 KPI 卡片：Visitors / Visits / Views / Bounce rate / Visit duration（含环比变化）
+- 时间窗口：`Last 24 hours`、`Last 7 days`、`Last 30 days`，支持 `offset` 查看历史窗口
+- 趋势图：Visitors 与 Views 柱状对比（ECharts）
+- 细分看板：Pages、Sources（Referrers/Channels）、Environment（Browsers/OS/Devices）、Location（Countries/Regions/Cities）
+- 空间分布：世界地图 Geo Distribution + 小时/星期 Traffic 热力矩阵
+- 运营辅助：保留「近期事项」管理员操作记录
 
 ## 特色组件
 

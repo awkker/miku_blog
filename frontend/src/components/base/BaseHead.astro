@@ -52,3 +52,73 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+
+<script is:inline>
+  (() => {
+    if (typeof window === 'undefined') return;
+    if (navigator.doNotTrack === '1') return;
+
+    const path = window.location.pathname || '/';
+    if (path.startsWith('/admin') || path.startsWith('/login') || path.startsWith('/api')) {
+      return;
+    }
+
+    const SESSION_KEY = 'miku_analytics_sid';
+    const LAST_ACTIVE_KEY = 'miku_analytics_sid_last';
+    const SESSION_TTL_MS = 30 * 60 * 1000;
+    const now = Date.now();
+
+    const createSessionId = () => {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+      }
+      return `sid-${now}-${Math.random().toString(16).slice(2)}`;
+    };
+
+    let sessionId = '';
+    try {
+      const lastActiveRaw = window.localStorage.getItem(LAST_ACTIVE_KEY) || '0';
+      const lastActive = Number(lastActiveRaw) || 0;
+      const existed = window.localStorage.getItem(SESSION_KEY) || '';
+      if (!existed || now - lastActive > SESSION_TTL_MS) {
+        sessionId = createSessionId();
+        window.localStorage.setItem(SESSION_KEY, sessionId);
+      } else {
+        sessionId = existed;
+      }
+      window.localStorage.setItem(LAST_ACTIVE_KEY, String(now));
+    } catch {
+      sessionId = createSessionId();
+    }
+
+    const payload = {
+      session_key: sessionId,
+      path: window.location.pathname || '/',
+      title: document.title || '',
+      referrer: document.referrer || '',
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || '',
+      language: navigator.language || '',
+      occurred_at: new Date().toISOString(),
+    };
+
+    const endpoint = '/api/v1/analytics/collect';
+    const body = JSON.stringify(payload);
+
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type: 'application/json' });
+        navigator.sendBeacon(endpoint, blob);
+        return;
+      }
+      fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true,
+        credentials: 'include',
+      }).catch(() => {});
+    } catch {
+      // ignore analytics errors
+    }
+  })();
+</script>
