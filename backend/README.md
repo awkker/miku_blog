@@ -50,6 +50,7 @@ docker-compose up -d
 ```bash
 cp .env.example .env
 # Edit .env as needed (especially JWT_SECRET for production)
+# Optional: set GEOIP_DB_PATH to GeoLite2-City.mmdb absolute path
 ```
 
 ### 3. Run migrations
@@ -62,6 +63,48 @@ Migration runner now tracks versions in `schema_migrations`.
 - Re-running `go run cmd/migrate/main.go` is safe.
 - Already applied versions are skipped automatically.
 - Legacy databases without migration records are backfilled on duplicate-object detection.
+
+### GeoIP fallback for analytics (optional)
+
+When request headers do not provide geo fields (for example local development), analytics can fallback to local MaxMind DB:
+
+1. Download `GeoLite2-City.mmdb` from MaxMind.
+2. Set `GEOIP_DB_PATH` in `.env` to an absolute file path.
+3. Restart backend service.
+
+Notes:
+- Geo headers from reverse proxies (Cloudflare/Vercel) still take precedence.
+- Private/loopback IPs (e.g. `127.0.0.1`, `192.168.x.x`) remain `Unknown`.
+
+#### Verify locally
+
+Use a public IP in `X-Forwarded-For` to simulate a real client (and **do not** send geo headers like `CF-IPCountry`):
+
+```bash
+curl -X POST 'http://localhost:8080/api/v1/analytics/collect' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Forwarded-For: 8.8.8.8' \
+  -d '{
+    "session_key":"geoip-local-test",
+    "path":"/geoip-test",
+    "title":"GeoIP Local Test",
+    "referrer":"",
+    "timezone":"Asia/Shanghai",
+    "language":"zh-CN",
+    "occurred_at":"2026-03-19T00:00:00Z"
+  }'
+```
+
+Then check the latest rows in PostgreSQL:
+
+```bash
+docker exec -it miku-blog-postgres psql -U miku -d miku_blog -c \
+"SELECT country_code, region, city, occurred_at FROM analytics_pageviews WHERE path='/geoip-test' ORDER BY occurred_at DESC LIMIT 5;"
+```
+
+Expected:
+- If GeoIP fallback works, `country_code` should be a two-letter code (e.g. `US`) instead of `ZZ`.
+- If it is still `ZZ`, verify `GEOIP_DB_PATH` and restart backend.
 
 ### 4. Seed admin user
 

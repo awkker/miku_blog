@@ -103,6 +103,20 @@
         </div>
       </div>
 
+      <div v-if="moderationNotices.length > 0" class="mt-4 grid gap-2 md:grid-cols-2">
+        <div
+          v-for="notice in moderationNotices"
+          :key="notice.key"
+          class="rounded-2xl border px-3 py-2.5 text-sm"
+          :class="notice.tone === 'amber'
+            ? 'border-amber-200/80 bg-amber-50/70 text-amber-800'
+            : 'border-sky-200/80 bg-sky-50/70 text-sky-800'"
+        >
+          <p class="font-semibold">{{ notice.title }}</p>
+          <p class="mt-0.5 text-xs opacity-80">{{ notice.subtitle }}</p>
+        </div>
+      </div>
+
       <div v-if="activityLoading" class="mt-4 flex h-[140px] items-center justify-center text-sm text-slate-400">
         加载中...
       </div>
@@ -347,6 +361,7 @@ import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { BarChart, MapChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent, VisualMapComponent, GeoComponent } from 'echarts/components'
+import { LegacyGridContainLabel } from 'echarts/features'
 import VChart from 'vue-echarts'
 
 import { api } from '../../lib/api'
@@ -355,7 +370,7 @@ import { setScopeStatus } from '../../stores/loading'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
 import SkeletonCard from '../ui/SkeletonCard.vue'
 
-echarts.use([CanvasRenderer, BarChart, MapChart, GridComponent, TooltipComponent, LegendComponent, VisualMapComponent, GeoComponent])
+echarts.use([CanvasRenderer, BarChart, MapChart, GridComponent, TooltipComponent, LegendComponent, VisualMapComponent, GeoComponent, LegacyGridContainLabel])
 
 type RangeKey = '24h' | '7d' | '30d'
 type PageTabKey = 'path' | 'entry' | 'exit'
@@ -445,9 +460,15 @@ interface AuditLogItem {
   created_at: string
 }
 
+interface DashboardStats {
+  pending_comments: number
+  draft_count: number
+}
+
 const auth = useStore(authState)
 const status = ref<'idle' | 'loading' | 'success' | 'error'>('idle')
 const analytics = ref<AnalyticsOverview | null>(null)
+const dashboardStats = ref<DashboardStats | null>(null)
 const degradedMode = ref(false)
 const selectedRange = ref<RangeKey>('24h')
 const offset = ref(0)
@@ -508,6 +529,35 @@ const formattedWindowRange = computed(() => {
   const end = analytics.value?.window.end
   if (!start || !end) return '--'
   return `${formatDateTime(start)} ~ ${formatDateTime(end)}`
+})
+
+const moderationNotices = computed(() => {
+  const stats = dashboardStats.value
+  if (!stats) return []
+
+  const notices: Array<{ key: string; title: string; subtitle: string; tone: 'amber' | 'sky' }> = []
+  const pendingCount = Number(stats.pending_comments || 0)
+  const draftCount = Number(stats.draft_count || 0)
+
+  if (pendingCount > 0) {
+    notices.push({
+      key: 'pending',
+      title: `评论留言待审核：${formatInteger(pendingCount)} 条`,
+      subtitle: '建议优先处理审核队列，避免积压',
+      tone: 'amber',
+    })
+  }
+
+  if (draftCount > 0) {
+    notices.push({
+      key: 'draft',
+      title: `草稿待发布：${formatInteger(draftCount)} 篇`,
+      subtitle: '可前往文章管理检查内容后发布',
+      tone: 'sky',
+    })
+  }
+
+  return notices
 })
 
 const statCards = computed(() => {
@@ -783,6 +833,14 @@ watch(selectedRange, async () => {
   await loadAnalytics()
 })
 
+async function loadDashboardStats() {
+  try {
+    dashboardStats.value = await api.get<DashboardStats>('/admin/dashboard/stats')
+  } catch {
+    dashboardStats.value = null
+  }
+}
+
 async function loadActivities() {
   activityLoading.value = true
   try {
@@ -824,7 +882,7 @@ async function ensureWorldMap() {
       ? (echarts as unknown as { getMap: (name: string) => unknown }).getMap('world')
       : null
     if (!hasMap) {
-      const response = await fetch('https://cdn.jsdelivr.net/npm/echarts@5/map/json/world.json')
+      const response = await fetch('https://echarts.apache.org/examples/data/asset/geo/world.json')
       if (!response.ok) return
       const geoJson = await response.json()
       echarts.registerMap('world', geoJson)
@@ -1013,6 +1071,6 @@ onMounted(async () => {
     window.location.replace('/login')
     return
   }
-  await Promise.all([loadAnalytics(), loadActivities()])
+  await Promise.all([loadAnalytics(), loadActivities(), loadDashboardStats()])
 })
 </script>

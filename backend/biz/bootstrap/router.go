@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"log/slog"
 	"time"
 
 	"nanamiku-blog/backend/biz/handler/admin"
@@ -38,7 +39,11 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 	guestbookSvc := service.NewGuestbookService(db)
 	momentsSvc := service.NewMomentsService(db)
 	friendsSvc := service.NewFriendsService(db)
-	dashboardSvc := service.NewDashboardService(db)
+	geoResolver, err := service.NewGeoIPResolver(cfg.GeoIP.DBPath)
+	if err != nil {
+		slog.Warn("geoip resolver disabled", "error", err)
+	}
+	dashboardSvc := service.NewDashboardService(db, geoResolver)
 	moderationSvc := service.NewModerationService(db)
 	postsSvc := service.NewPostsService(db)
 	postCommentsSvc := service.NewPostCommentsService(db)

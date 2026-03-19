@@ -25,6 +25,7 @@ type AnalyticsCollectInput struct {
 	Language    string
 	OccurredAt  time.Time
 	UserAgent   string
+	ClientIP    string
 	CountryCode string
 	Region      string
 	City        string
@@ -142,6 +143,20 @@ func (s *DashboardService) CollectPageview(ctx context.Context, in AnalyticsColl
 	countryCode := normalizeCountryCode(in.CountryCode)
 	region := normalizeGeoName(in.Region)
 	city := normalizeGeoName(in.City)
+	if s.geoResolver != nil && (countryCode == "ZZ" || region == "Unknown" || city == "Unknown") {
+		resolvedCountry, resolvedRegion, resolvedCity, ok := s.geoResolver.Lookup(in.ClientIP)
+		if ok {
+			if countryCode == "ZZ" && resolvedCountry != "" {
+				countryCode = normalizeCountryCode(resolvedCountry)
+			}
+			if region == "Unknown" && strings.TrimSpace(resolvedRegion) != "" {
+				region = normalizeGeoName(resolvedRegion)
+			}
+			if city == "Unknown" && strings.TrimSpace(resolvedCity) != "" {
+				city = normalizeGeoName(resolvedCity)
+			}
+		}
+	}
 	timezone := trimRunes(in.Timezone, 64)
 	language := trimRunes(in.Language, 32)
 	title := trimRunes(strings.TrimSpace(in.Title), 180)

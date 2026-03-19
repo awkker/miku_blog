@@ -12,12 +12,13 @@ import (
 )
 
 type DashboardService struct {
-	q  *query.Queries
-	db *pgxpool.Pool
+	q           *query.Queries
+	db          *pgxpool.Pool
+	geoResolver *GeoIPResolver
 }
 
-func NewDashboardService(db *pgxpool.Pool) *DashboardService {
-	return &DashboardService{q: query.New(db), db: db}
+func NewDashboardService(db *pgxpool.Pool, geoResolver *GeoIPResolver) *DashboardService {
+	return &DashboardService{q: query.New(db), db: db, geoResolver: geoResolver}
 }
 
 type DashboardStats struct {
@@ -52,6 +53,13 @@ func (s *DashboardService) GetStats(ctx context.Context) (*DashboardStats, error
 	if err != nil {
 		return nil, fmt.Errorf("pending comments: %w", err)
 	}
+	pendingGuestbook, err := s.q.CountAdminGuestbookMessages(ctx, query.NullModerationStatus{
+		ModerationStatus: query.ModerationStatusPending,
+		Valid:            true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("pending guestbook messages: %w", err)
+	}
 	friendCount, err := s.q.CountApprovedFriendLinks(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("friend count: %w", err)
@@ -64,7 +72,7 @@ func (s *DashboardService) GetStats(ctx context.Context) (*DashboardStats, error
 	return &DashboardStats{
 		TotalPosts:   totalPosts,
 		TotalLikes:   totalLikes,
-		PendingCount: pendingComments,
+		PendingCount: pendingComments + pendingGuestbook,
 		FriendCount:  friendCount,
 		DraftCount:   draftCount,
 	}, nil

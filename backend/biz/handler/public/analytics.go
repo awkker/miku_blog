@@ -66,6 +66,7 @@ func (h *AnalyticsHandler) Collect(ctx context.Context, c *app.RequestContext) {
 		Language:    req.Language,
 		OccurredAt:  occurredAt,
 		UserAgent:   ua,
+		ClientIP:    getClientIP(c),
 		CountryCode: pickHeader(c, "CF-IPCountry", "X-Vercel-IP-Country", "X-AppEngine-Country", "X-Country-Code"),
 		Region:      pickHeader(c, "X-Vercel-IP-Country-Region", "X-AppEngine-Region", "CF-IPRegion"),
 		City:        pickHeader(c, "X-Vercel-IP-City", "X-AppEngine-City", "CF-IPCity"),
@@ -86,6 +87,19 @@ func pickHeader(c *app.RequestContext, keys ...string) string {
 		}
 	}
 	return ""
+}
+
+func getClientIP(c *app.RequestContext) string {
+	if ip := strings.TrimSpace(string(c.GetHeader("X-Real-IP"))); ip != "" {
+		return ip
+	}
+	if ip := strings.TrimSpace(string(c.GetHeader("X-Forwarded-For"))); ip != "" {
+		if idx := strings.Index(ip, ","); idx >= 0 {
+			return strings.TrimSpace(ip[:idx])
+		}
+		return ip
+	}
+	return strings.TrimSpace(c.ClientIP())
 }
 
 func isBotUserAgent(ua string) bool {

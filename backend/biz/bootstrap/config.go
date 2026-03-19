@@ -14,10 +14,15 @@ type Config struct {
 	JWT     JWTConfig
 	CORS    CORSConfig
 	Weather WeatherConfig
+	GeoIP   GeoIPConfig
 }
 
 type WeatherConfig struct {
 	Location string
+}
+
+type GeoIPConfig struct {
+	DBPath string
 }
 
 type ServerConfig struct {
@@ -89,6 +94,9 @@ func LoadConfig() *Config {
 		},
 		Weather: WeatherConfig{
 			Location: envStr("WEATHER_LOCATION", "Shanghai"),
+		},
+		GeoIP: GeoIPConfig{
+			DBPath: envStr("GEOIP_DB_PATH", ""),
 		},
 	}
 }
