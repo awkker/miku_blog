@@ -8,17 +8,17 @@
             <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z" />
           </svg>
         </div>
-        <h2 class="text-lg font-semibold text-slate-800">发布留言</h2>
+        <h2 class="text-lg font-semibold text-slate-800">{{ copy.postTitle }}</h2>
       </div>
       <form class="space-y-4" @submit.prevent="handleSubmit">
         <div class="grid gap-4 md:grid-cols-2">
-          <MikuInput v-model="form.nickname" label="昵称" placeholder="请输入昵称" :error="errors.nickname" aria-label="昵称" required />
-          <MikuInput v-model="form.website" label="网址（可选）" placeholder="https://example.com" :error="errors.website" aria-label="个人网址" />
+          <MikuInput v-model="form.nickname" :label="copy.nicknameLabel" :placeholder="copy.nicknamePlaceholder" :error="errors.nickname" :aria-label="copy.nicknameAria" required />
+          <MikuInput v-model="form.website" :label="copy.websiteLabel" :placeholder="copy.websitePlaceholder" :error="errors.website" :aria-label="copy.websiteAria" />
         </div>
-        <MikuTextarea v-model="form.message" label="留言内容" placeholder="想说点什么？欢迎留下你的想法。" :error="errors.message" :rows="4" aria-label="留言内容" required />
+        <MikuTextarea v-model="form.message" :label="copy.messageLabel" :placeholder="copy.messagePlaceholder" :error="errors.message" :rows="4" :aria-label="copy.messageAria" required />
         <div class="flex justify-end">
-          <MikuButton type="submit" :loading="submitting" :disabled="submitting" aria-label="发送留言">
-            {{ submitting ? '发送中...' : '发布' }}
+          <MikuButton type="submit" :loading="submitting" :disabled="submitting" :aria-label="copy.submitAria">
+            {{ submitting ? copy.submitLoading : copy.submitIdle }}
           </MikuButton>
         </div>
       </form>
@@ -39,19 +39,19 @@
         </button>
       </div>
       <span v-if="messages.length > 0" class="text-xs text-slate-400">
-        {{ messages.length }} 条留言
+        {{ messages.length }}{{ copy.countSuffix }}
       </span>
     </div>
 
     <!-- Messages -->
-    <ErrorState v-if="fetchStatus === 'error'" :description="fetchError || '留言读取失败，请稍后再试。'" @retry="loadMessages" />
+    <ErrorState v-if="fetchStatus === 'error'" :description="fetchError || copy.loadErrorFallback" @retry="loadMessages" />
 
     <div v-else class="space-y-4">
       <div v-if="fetchStatus === 'loading'" class="space-y-4">
         <SkeletonCard v-for="item in 3" :key="item" />
       </div>
 
-      <EmptyState v-else-if="messages.length === 0" title="还没有留言" description="成为第一个在这里留下足迹的人。" />
+      <EmptyState v-else-if="messages.length === 0" :title="copy.emptyTitle" :description="copy.emptyDescription" />
 
       <TransitionGroup v-else name="message-rise" tag="div" class="space-y-4">
         <GuestbookMessageCard
@@ -90,12 +90,10 @@ import MikuButton from '../ui/MikuButton.vue'
 import MikuInput from '../ui/MikuInput.vue'
 import MikuTextarea from '../ui/MikuTextarea.vue'
 import SkeletonCard from '../ui/SkeletonCard.vue'
+import { siteCopy } from '../../content/copy'
 
-const sortTabs = [
-  { label: '最热', value: 'hot' as SortMode },
-  { label: '最新', value: 'newest' as SortMode },
-  { label: '最早', value: 'oldest' as SortMode },
-]
+const copy = siteCopy.components.guestbookBoard
+const sortTabs = copy.sortTabs.map((tab) => ({ label: tab.label, value: tab.value as SortMode }))
 
 const form = reactive({ nickname: '', website: '', message: '' })
 const errors = reactive({ nickname: '', website: '', message: '' })
@@ -124,9 +122,9 @@ function isValidUrl(url: string) {
 }
 
 function validate() {
-  errors.nickname = form.nickname.trim() ? '' : '昵称不能为空'
-  errors.message = form.message.trim() ? '' : '留言内容不能为空'
-  errors.website = isValidUrl(form.website) ? '' : '网址格式不合法，请输入 http(s) 链接'
+  errors.nickname = form.nickname.trim() ? '' : copy.validation.nicknameRequired
+  errors.message = form.message.trim() ? '' : copy.validation.messageRequired
+  errors.website = isValidUrl(form.website) ? '' : copy.validation.websiteInvalid
   return !errors.nickname && !errors.message && !errors.website
 }
 
@@ -139,18 +137,18 @@ async function handleSubmit() {
   try {
     await submitGuestbookMessage({ nickname: form.nickname, website: form.website, message: form.message })
     form.message = ''
-    showToast('留言已提交，等待审核', 'success')
+    showToast(copy.toasts.submitSuccess, 'success')
   } catch {
-    showToast('留言发送失败，请稍后重试', 'error')
+    showToast(copy.toasts.submitFailed, 'error')
   }
 }
 
 async function handleReply(payload: { parentId: string; nickname: string; message: string }) {
   try {
     await submitGuestbookMessage({ nickname: payload.nickname, message: payload.message, parentId: payload.parentId })
-    showToast('回复已提交，等待审核', 'success')
+    showToast(copy.toasts.replySuccess, 'success')
   } catch {
-    showToast('回复发送失败，请稍后重试', 'error')
+    showToast(copy.toasts.replyFailed, 'error')
   }
 }
 

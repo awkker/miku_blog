@@ -8,16 +8,9 @@ import HeroTitle from '../components/home/HeroTitle.vue'
 import WeatherDisplay from '../components/home/WeatherDisplay.vue'
 import HeroParallax from '../components/home/HeroParallax.vue'
 import HeroShuffleBtn from '../components/home/HeroShuffleBtn.vue'
+import { siteCopy } from '../content/copy'
 
-const dockItems = [
-  { name: '访客', href: '/about', icon: 'person' },
-  { name: '博客', href: '/blog', icon: 'book' },
-  { name: '说说', href: '/moments', icon: 'moments' },
-  { name: '留言', href: '/guestbook', icon: 'message' },
-  { name: '友链', href: '/friends', icon: 'link' },
-  { name: '登录', href: '/login', icon: 'login', auth: 'guest' },
-  { name: '后台', href: '/admin', icon: 'admin', auth: 'authed' },
-]
+const dockItems = siteCopy.home.dockItems
 
 const iconPaths: Record<string, string> = {
   person:
@@ -35,7 +28,7 @@ const iconPaths: Record<string, string> = {
 <!doctype html>
 <html lang="zh-CN">
   <head>
-    <BaseHead title="nanamiku blog" description="nanamiku blog 开屏页" />
+    <BaseHead title={siteCopy.home.metaTitle} description={siteCopy.home.metaDescription} />
   </head>
   <body class="overflow-hidden bg-slate-900 text-[#39c5bb]">
     <main class="relative h-screen w-screen overflow-hidden">
@@ -43,8 +36,8 @@ const iconPaths: Record<string, string> = {
 
       <header class="absolute left-0 top-0 z-20 flex h-8 w-full items-center justify-between border-b border-white/30 bg-white/35 px-4 text-sm font-medium text-[#39c5bb]/90 backdrop-blur-none">
         <div class="flex items-center gap-2 text-xs tracking-[0.2em]">
-          <img src="/picture/logo.png" alt="nanamiku logo" class="h-4 w-4 rounded-sm object-cover" />
-          <span class="rounded bg-white/20 px-2 py-0.5">NANAMIKU BLOG</span>
+          <img src="/picture/logo.png" alt={siteCopy.brand.logoAlt} class="h-4 w-4 rounded-sm object-cover" />
+          <span class="rounded bg-white/20 px-2 py-0.5">{siteCopy.brand.text}</span>
         </div>
 
         <div class="flex items-center gap-3 text-[11px]">
@@ -56,11 +49,11 @@ const iconPaths: Record<string, string> = {
 
       <section class="relative z-10 flex h-full flex-col items-center justify-center px-4 text-center">
         <h1 class="hero-title animate-fade-up text-[clamp(2.9rem,7.4vw,5.6rem)] tracking-[0.03em]">
-          <span class="hero-text"><HeroTitle client:load text="薰逸の猫窝" /></span>
+          <span class="hero-text"><HeroTitle client:load text={siteCopy.home.heroTitle} /></span>
         </h1>
         <TypewriterSubtitle
           client:load
-          text="「月が綺麗ですね, 風も優しいですね」。"
+          text={siteCopy.home.heroSubtitle}
         />
       </section>
 

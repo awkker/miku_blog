@@ -2,13 +2,14 @@
 import AdminSidebar from '../components/admin/AdminSidebar.vue'
 import AdminContentHeader from '../components/admin/AdminContentHeader.vue'
 import GlobalToast from '../components/ui/GlobalToast.vue'
+import { adminCopy } from '../content/copy'
 
 interface Props {
   activeKey?: string
   pageTitle?: string
 }
 
-const { activeKey = 'dashboard', pageTitle = '仪表盘' } = Astro.props
+const { activeKey = 'dashboard', pageTitle = adminCopy.layout.defaultPageTitle } = Astro.props
 ---
 
 <main class="relative min-h-screen bg-slate-50 text-slate-900">

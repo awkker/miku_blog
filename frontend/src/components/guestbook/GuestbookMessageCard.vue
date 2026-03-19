@@ -7,7 +7,7 @@
           type="button"
           class="rounded p-0.5 transition hover:bg-miku/10"
           :class="message.myVote === 1 ? 'text-miku' : 'text-slate-400'"
-          aria-label="赞同"
+          :aria-label="copy.upvoteAria"
           @click="vote(1)"
         >
           <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current"><path d="M12 4l-8 8h5v8h6v-8h5z" /></svg>
@@ -17,7 +17,7 @@
           type="button"
           class="rounded p-0.5 transition hover:bg-red-50"
           :class="message.myVote === -1 ? 'text-red-500' : 'text-slate-400'"
-          aria-label="反对"
+          :aria-label="copy.downvoteAria"
           @click="vote(-1)"
         >
           <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current"><path d="M12 20l8-8h-5V4H9v8H4z" /></svg>
@@ -57,10 +57,10 @@
             <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 fill-none stroke-current stroke-[1.8]" aria-hidden="true">
               <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
             </svg>
-            回复
+            {{ copy.replyButton }}
           </button>
           <span v-if="message.replies.length > 0" class="text-[11px] text-slate-400">
-            {{ message.replies.length }} 条回复
+            {{ message.replies.length }}{{ copy.replyCountSuffix }}
           </span>
         </div>
 
@@ -70,14 +70,14 @@
             <input
               v-model="replyNickname"
               type="text"
-              placeholder="你的昵称"
+              :placeholder="copy.nicknamePlaceholder"
               class="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-miku/50 focus:ring-1 focus:ring-miku/30"
             />
           </div>
           <textarea
             v-model="replyContent"
             rows="2"
-            placeholder="写下你的回复..."
+            :placeholder="copy.contentPlaceholder"
             class="w-full resize-none rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-miku/50 focus:ring-1 focus:ring-miku/30"
           />
           <div class="mt-2 flex items-center justify-end gap-2">
@@ -86,7 +86,7 @@
               class="rounded-lg px-3 py-1.5 text-xs text-slate-500 transition hover:bg-slate-200"
               @click="showReplyForm = false"
             >
-              取消
+              {{ copy.cancel }}
             </button>
             <button
               type="button"
@@ -94,7 +94,7 @@
               :disabled="!replyNickname.trim() || !replyContent.trim()"
               @click="submitReply"
             >
-              回复
+              {{ copy.submitReply }}
             </button>
           </div>
         </div>
@@ -140,6 +140,7 @@ import { computed, ref } from 'vue'
 import type { GuestbookMessage } from '../../stores/guestbook'
 import { voteMessage } from '../../stores/guestbook'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
+import { siteCopy } from '../../content/copy'
 
 interface Props {
   message: GuestbookMessage
@@ -151,6 +152,7 @@ const emit = defineEmits<{ reply: [payload: { parentId: string; nickname: string
 const showReplyForm = ref(false)
 const replyNickname = ref('')
 const replyContent = ref('')
+const copy = siteCopy.components.guestbookMessageCard
 
 const voteColor = computed(() => {
   if (props.message.myVote === 1) return 'text-miku'

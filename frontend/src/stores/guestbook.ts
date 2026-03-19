@@ -1,6 +1,7 @@
 import { atom, computed } from 'nanostores'
 
 import { api, type PagedData } from '../lib/api'
+import { siteCopy } from '../content/copy'
 
 // Guestbook domain store:
 // Reddit-style threaded messages with votes, replies, and sort.
@@ -89,6 +90,7 @@ export const guestbookFetchStatus = atom<'idle' | 'loading' | 'success' | 'error
 export const guestbookSubmitStatus = atom<'idle' | 'loading' | 'success' | 'error'>('idle')
 export const guestbookError = atom('')
 export const guestbookSortMode = atom<SortMode>('hot')
+const copy = siteCopy.components.guestbookBoard
 
 export const guestbookSorted = computed(guestbookMessages, (msgs) => {
   const mode = guestbookSortMode.get()
@@ -109,7 +111,7 @@ export async function loadGuestbookMessages() {
     guestbookFetchStatus.set('success')
   } catch {
     guestbookFetchStatus.set('error')
-    guestbookError.set('留言加载失败，请稍后重试。')
+    guestbookError.set(copy.loadErrorFallback)
   }
 }
 
@@ -136,7 +138,7 @@ export async function submitGuestbookMessage(draft: GuestbookDraft) {
     return newMessage
   } catch {
     guestbookSubmitStatus.set('error')
-    guestbookError.set('留言提交失败，请检查网络后重试。')
+    guestbookError.set(copy.submitError)
     throw new Error('submit failed')
   }
 }

@@ -7,9 +7,9 @@
             <path d="M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z" />
           </svg>
         </div>
-        <h3 class="text-sm font-bold tracking-[0.12em] text-slate-700">MOMENTS</h3>
+        <h3 class="text-sm font-bold tracking-[0.12em] text-slate-700">{{ copy.title }}</h3>
       </div>
-      <a href="/moments" class="text-[11px] text-miku transition hover:underline">查看全部 &#8594;</a>
+      <a href="/moments" class="text-[11px] text-miku transition hover:underline">{{ copy.viewAll }}</a>
     </div>
 
     <!-- Loading -->
@@ -23,8 +23,8 @@
 
     <!-- Error -->
     <div v-else-if="status === 'error'" class="rounded-xl bg-red-50/60 px-3 py-4 text-center text-xs text-red-400">
-      加载失败
-      <button type="button" class="ml-1 text-miku underline" @click="load">重试</button>
+      {{ copy.loadFailed }}
+      <button type="button" class="ml-1 text-miku underline" @click="load">{{ copy.retry }}</button>
     </div>
 
     <!-- Feed -->
@@ -46,7 +46,7 @@
             v-for="(img, idx) in item.images.slice(0, 3)"
             :key="idx"
             :src="img"
-            :alt="`图片 ${idx + 1}`"
+            :alt="`${copy.imageAltPrefix}${idx + 1}`"
             class="h-12 w-12 rounded-lg border border-slate-100 object-cover"
             loading="lazy"
           />
@@ -67,7 +67,7 @@
       </a>
 
       <div v-if="latestList.length === 0" class="py-4 text-center text-xs text-slate-400">
-        暂无说说
+        {{ copy.empty }}
       </div>
     </div>
   </div>
@@ -77,9 +77,11 @@
 import { useStore } from '@nanostores/vue'
 import { computed, onMounted } from 'vue'
 import { loadMoments, moments, momentsFetchStatus } from '../../stores/moments'
+import { siteCopy } from '../../content/copy'
 
 const list = useStore(moments)
 const status = useStore(momentsFetchStatus)
+const copy = siteCopy.components.latestMoments
 
 const latestList = computed(() => [...list.value].slice(0, 3))
 

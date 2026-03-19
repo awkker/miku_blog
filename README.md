@@ -24,6 +24,7 @@ nanamiku-blog/
 ├── frontend/               # Astro + Vue 3 前端
 │   ├── src/
 │   │   ├── components/     # UI 组件（按域分目录）
+│   │   ├── content/copy/   # 前端可 DIY 文案集中入口（站点/后台）
 │   │   ├── layouts/        # 页面布局
 │   │   ├── lib/            # 共享工具（api.ts 等）
 │   │   ├── pages/          # 基于文件的路由
@@ -130,6 +131,27 @@ npm run dev                   # 启动开发服务器 :4321
 - 细分看板：Pages、Sources（Referrers/Channels）、Environment（Browsers/OS/Devices）、Location（Countries/Regions/Cities）
 - 空间分布：世界地图 Geo Distribution + 小时/星期 Traffic 热力矩阵
 - 运营辅助：保留「近期事项」管理员操作记录
+
+## 文案 DIY
+
+- 站点级文案入口：`frontend/src/content/copy/site.ts`
+- 后台文案入口：`frontend/src/content/copy/admin.ts`
+- 统一导出：`frontend/src/content/copy/index.ts`
+- 建议：如果要改页面可见文案，优先改 copy 文件，再由页面/组件读取；不要在页面模板里直接写死字符串。
+
+### `site.ts` 分区速查
+
+- `home`：开屏页（`/`）标题、副标题、Dock 文案
+- `blogTopNav`：博客导航（博客首页/说说/留言板/友情链接/关于/后台/登录）
+- `blogIndex`：博客首页（`/blog`）Hero 区、右侧作者卡、近况/歌单、按钮文案
+- `aboutPage`：关于我（`/about`）整页文案（简介、时间线、项目、写作地图、联系区等）
+- `momentsPage`：说说页（`/moments`）标题、副标题、页面内快捷导航文案
+- `guestbookPage`：留言板（`/guestbook`）标题、副标题、页面内快捷导航文案
+- `components.blogFeed`：博客首页文章流组件文案（空态/错误/标签等）
+- `components.aboutGithubProfile`：关于页 GitHub 模块文案
+- `components.latestMoments`：博客侧栏 Latest Moments 文案
+- `components.momentsBoard` / `components.momentCard`：说说流及卡片文案
+- `components.guestbookBoard` / `components.guestbookMessageCard`：留言板表单/列表/回复文案
 
 ## 特色组件
 

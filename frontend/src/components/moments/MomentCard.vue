@@ -28,7 +28,7 @@
         >
           <img
             :src="img"
-            :alt="`图片 ${idx + 1}`"
+            :alt="`${copy.imageAltPrefix}${idx + 1}`"
             class="h-full w-full object-cover transition duration-300 group-hover/img:scale-105"
             :class="moment.images.length === 1 ? 'max-h-[400px]' : 'aspect-square'"
             loading="lazy"
@@ -130,14 +130,14 @@
             <input
               v-model="commentNickname"
               type="text"
-              placeholder="你的昵称"
+              :placeholder="copy.nicknamePlaceholder"
               class="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-miku/50 focus:ring-1 focus:ring-miku/30"
             />
             <div class="flex gap-2">
               <input
                 v-model="commentContent"
                 type="text"
-                placeholder="写下评论..."
+                :placeholder="copy.commentPlaceholder"
                 class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-miku/50 focus:ring-1 focus:ring-miku/30"
                 @keydown.enter="submitComment"
               />
@@ -147,7 +147,7 @@
                 :disabled="!commentNickname.trim() || !commentContent.trim()"
                 @click="submitComment"
               >
-                发送
+                {{ copy.send }}
               </button>
             </div>
           </div>
@@ -173,7 +173,7 @@
         </button>
         <img
           :src="moment.images[previewIndex]"
-          alt="预览大图"
+          :alt="copy.previewAlt"
           class="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
         />
         <!-- Prev/Next -->
@@ -204,6 +204,7 @@ import type { Moment } from '../../stores/moments'
 import { addComment, toggleLikeComment, toggleLikeMoment, toggleRepostMoment } from '../../stores/moments'
 import { showToast } from '../../stores/ui'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
+import { siteCopy } from '../../content/copy'
 
 interface Props {
   moment: Moment
@@ -215,6 +216,7 @@ const showComments = ref(false)
 const commentNickname = ref('')
 const commentContent = ref('')
 const previewIndex = ref<number | null>(null)
+const copy = siteCopy.components.momentCard
 
 const imageGridClass = computed(() => {
   const count = props.moment.images.length
@@ -231,17 +233,17 @@ function handleRepost() {
   toggleRepostMoment(props.moment.id)
   if (!props.moment.reposted) {
     navigator.clipboard?.writeText(`${window.location.origin}/moments#${props.moment.id}`)
-    showToast('链接已复制到剪贴板', 'success')
+    showToast(copy.copiedToast, 'success')
   }
 }
 
 function handleShare() {
   const url = `${window.location.origin}/moments#${props.moment.id}`
   if (navigator.share) {
-    navigator.share({ title: `${props.moment.nickname} 的说说`, url })
+    navigator.share({ title: `${props.moment.nickname}${copy.shareTitleSuffix}`, url })
   } else {
     navigator.clipboard?.writeText(url)
-    showToast('链接已复制到剪贴板', 'success')
+    showToast(copy.copiedToast, 'success')
   }
 }
 
@@ -258,9 +260,9 @@ async function submitComment() {
   try {
     await addComment({ momentId: props.moment.id, nickname: commentNickname.value, content: commentContent.value })
     commentContent.value = ''
-    showToast('评论已发送', 'success')
+    showToast(copy.commentSentToast, 'success')
   } catch {
-    showToast('评论发送失败，请稍后重试', 'error')
+    showToast(copy.commentFailedToast, 'error')
   }
 }
 </script>

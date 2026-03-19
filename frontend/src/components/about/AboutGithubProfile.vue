@@ -10,7 +10,7 @@
     </div>
 
     <LiquidGlassCard v-else-if="error" padding="20px" maxWidth="100%">
-      <p class="text-sm text-slate-500">GitHub 数据暂时无法加载，请稍后刷新页面重试。</p>
+      <p class="text-sm text-slate-500">{{ copy.loadError }}</p>
     </LiquidGlassCard>
 
     <template v-else>
@@ -35,29 +35,29 @@
                 <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
                 </svg>
-                &#26597;&#30475; GitHub &#20027;&#39029; &#8594;
+                {{ copy.viewProfile }}
               </a>
             </div>
           </div>
           <div class="mt-5 grid grid-cols-3 gap-2.5">
             <div class="rounded-xl border border-white/65 bg-white/62 px-3 py-2.5 text-center">
               <p class="text-lg font-bold text-slate-900">{{ profile.totalRepos }}</p>
-              <p class="text-xs text-slate-400">Repos</p>
+              <p class="text-xs text-slate-400">{{ copy.stats.repos }}</p>
             </div>
             <div class="rounded-xl border border-white/65 bg-white/62 px-3 py-2.5 text-center">
               <p class="text-lg font-bold text-slate-900">{{ profile.totalStars }}</p>
-              <p class="text-xs text-slate-400">Stars</p>
+              <p class="text-xs text-slate-400">{{ copy.stats.stars }}</p>
             </div>
             <div class="rounded-xl border border-white/65 bg-white/62 px-3 py-2.5 text-center">
               <p class="text-lg font-bold text-slate-900">{{ profile.followers }}</p>
-              <p class="text-xs text-slate-400">Followers</p>
+              <p class="text-xs text-slate-400">{{ copy.stats.followers }}</p>
             </div>
           </div>
         </LiquidGlassCard>
 
         <LiquidGlassCard padding="24px" maxWidth="100%">
-          <h3 class="text-base font-semibold text-slate-900">GitHub 活动概览</h3>
-          <p class="mt-0.5 text-xs text-slate-400">近 12 个月提交趋势</p>
+          <h3 class="text-base font-semibold text-slate-900">{{ copy.activityTitle }}</h3>
+          <p class="mt-0.5 text-xs text-slate-400">{{ copy.activitySubtitle }}</p>
           <div class="mt-3" style="height: 184px">
             <v-chart :option="chartOption" autoresize />
           </div>
@@ -66,8 +66,8 @@
 
       <!-- Tech Stack -->
       <LiquidGlassCard padding="20px" maxWidth="100%">
-        <h3 class="text-base font-semibold text-slate-900">技术栈</h3>
-        <p class="mt-0.5 text-xs text-slate-400">基于 GitHub 仓库语言自动分析</p>
+        <h3 class="text-base font-semibold text-slate-900">{{ copy.techStackTitle }}</h3>
+        <p class="mt-0.5 text-xs text-slate-400">{{ copy.techStackSubtitle }}</p>
         <div class="mt-3 flex flex-wrap gap-2">
           <span
             v-for="(tech, index) in techStack"
@@ -88,8 +88,8 @@
 
       <!-- Recent Repos -->
       <LiquidGlassCard padding="24px" maxWidth="100%">
-        <h3 class="text-base font-semibold text-slate-900">最近活跃项目</h3>
-        <p class="mt-0.5 text-xs text-slate-400">来自 GitHub 最近有更新的仓库</p>
+        <h3 class="text-base font-semibold text-slate-900">{{ copy.recentReposTitle }}</h3>
+        <p class="mt-0.5 text-xs text-slate-400">{{ copy.recentReposSubtitle }}</p>
         <div class="mt-3 grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
           <a
             v-for="repo in recentRepos"
@@ -126,6 +126,7 @@ import { LineChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
+import { siteCopy } from '../../content/copy'
 
 use([CanvasRenderer, LineChart, GridComponent, TooltipComponent])
 
@@ -141,6 +142,7 @@ const props = defineProps<Props>()
 
 const loading = ref(true)
 const error = ref(false)
+const copy = siteCopy.components.aboutGithubProfile
 
 interface ProfileData {
   avatarUrl: string
@@ -181,7 +183,7 @@ const monthLabels = computed(() => {
   const labels: string[] = []
   for (let i = 11; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    labels.push(`${d.getMonth() + 1}月`)
+    labels.push(`${d.getMonth() + 1}${copy.monthSuffix}`)
   }
   return labels
 })

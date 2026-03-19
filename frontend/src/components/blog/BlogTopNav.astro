@@ -1,9 +1,5 @@
 ---
-interface NavItem {
-  href: string
-  label: string
-  auth?: 'authed' | 'guest'
-}
+import { siteCopy } from '../../content/copy'
 
 interface Props {
   currentPath?: string
@@ -11,18 +7,8 @@ interface Props {
 
 const { currentPath = '/' } = Astro.props
 
-const primaryLinks: NavItem[] = [
-  { href: '/blog', label: '博客首页' },
-  { href: '/moments', label: '说说' },
-  { href: '/guestbook', label: '留言板' },
-  { href: '/friends', label: '友情链接' },
-  { href: '/about', label: '关于' },
-]
-
-const actionLinks: NavItem[] = [
-  { href: '/admin', label: '后台', auth: 'authed' },
-  { href: '/login', label: '登录', auth: 'guest' },
-]
+const primaryLinks = siteCopy.blogTopNav.primaryLinks
+const actionLinks = siteCopy.blogTopNav.actionLinks
 
 function isActive(href: string) {
   if (href === '/blog') {
@@ -39,8 +25,8 @@ function isActive(href: string) {
 >
   <nav class="mx-auto flex h-14 w-full max-w-[1320px] items-center justify-between gap-3 px-4 text-sm text-slate-700">
     <a href="/" class="inline-flex shrink-0 items-center gap-2 font-semibold tracking-[0.18em]">
-      <img src="/picture/logo.png" alt="nanamiku logo" class="h-7 w-7 rounded-sm object-cover" />
-      <span>NANAMIKU BLOG</span>
+      <img src="/picture/logo.png" alt={siteCopy.brand.logoAlt} class="h-7 w-7 rounded-sm object-cover" />
+      <span>{siteCopy.brand.text}</span>
     </a>
 
     <div class="hidden items-center gap-4 md:flex">
@@ -52,7 +38,7 @@ function isActive(href: string) {
               'transition',
               isActive(item.href) ? 'text-miku' : 'hover:text-miku',
             ]}
-            aria-label={`前往${item.label}`}
+            aria-label={`${siteCopy.blogTopNav.ariaPrefix}${item.label}`}
           >
             {item.label}
           </a>
@@ -73,7 +59,7 @@ function isActive(href: string) {
                 ? 'border-miku/45 bg-miku-soft text-miku'
                 : 'border-white/35 bg-white/30 hover:border-miku/35 hover:text-miku',
             ]}
-            aria-label={`前往${item.label}`}
+            aria-label={`${siteCopy.blogTopNav.ariaPrefix}${item.label}`}
           >
             {item.label}
           </a>

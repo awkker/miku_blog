@@ -1,6 +1,7 @@
 import { atom } from 'nanostores'
 
 import { api, type PagedData } from '../lib/api'
+import { siteCopy } from '../content/copy'
 
 // Moments domain store:
 // Twitter/X-style posts with images, likes, reposts, and comments.
@@ -122,6 +123,7 @@ export const moments = atom<Moment[]>([])
 export const momentsFetchStatus = atom<'idle' | 'loading' | 'success' | 'error'>('idle')
 export const momentsSubmitStatus = atom<'idle' | 'loading' | 'success' | 'error'>('idle')
 export const momentsError = atom('')
+const copy = siteCopy.components.momentsBoard
 
 export async function loadMoments() {
   momentsFetchStatus.set('loading')
@@ -143,7 +145,7 @@ export async function loadMoments() {
     momentsFetchStatus.set('success')
   } catch {
     momentsFetchStatus.set('error')
-    momentsError.set('说说加载失败，请稍后重试。')
+    momentsError.set(copy.loadErrorFallback)
   }
 }
 
@@ -164,7 +166,7 @@ export async function submitMoment(draft: MomentDraft) {
     return newMoment
   } catch {
     momentsSubmitStatus.set('error')
-    momentsError.set('发布失败，请检查网络后重试。')
+    momentsError.set(copy.submitError)
     throw new Error('submit failed')
   }
 }

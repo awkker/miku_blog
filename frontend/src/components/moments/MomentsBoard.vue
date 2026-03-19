@@ -2,18 +2,18 @@
   <section class="space-y-6">
     <!-- Feed Count -->
     <div v-if="list.length > 0" class="flex items-center justify-between px-1">
-      <span class="text-xs text-slate-400">{{ list.length }} 条说说</span>
+      <span class="text-xs text-slate-400">{{ list.length }}{{ copy.countSuffix }}</span>
     </div>
 
     <!-- Feed -->
-    <ErrorState v-if="fetchStatus === 'error'" :description="fetchError || '说说加载失败，请稍后再试。'" @retry="loadFeed" />
+    <ErrorState v-if="fetchStatus === 'error'" :description="fetchError || copy.loadErrorFallback" @retry="loadFeed" />
 
     <div v-else class="space-y-4">
       <div v-if="fetchStatus === 'loading'" class="space-y-4">
         <SkeletonCard v-for="item in 3" :key="item" />
       </div>
 
-      <EmptyState v-else-if="list.length === 0" title="还没有说说" description="发布第一条说说，记录此刻的想法。" />
+      <EmptyState v-else-if="list.length === 0" :title="copy.emptyTitle" :description="copy.emptyDescription" />
 
       <TransitionGroup v-else name="feed-rise" tag="div" class="space-y-4">
         <MomentCard v-for="item in list" :key="item.id" :moment="item" />
@@ -36,10 +36,12 @@ import EmptyState from '../ui/EmptyState.vue'
 import ErrorState from '../ui/ErrorState.vue'
 import MomentCard from './MomentCard.vue'
 import SkeletonCard from '../ui/SkeletonCard.vue'
+import { siteCopy } from '../../content/copy'
 
 const list = useStore(moments)
 const fetchStatus = useStore(momentsFetchStatus)
 const fetchError = useStore(momentsError)
+const copy = siteCopy.components.momentsBoard
 
 async function loadFeed() {
   await loadMoments()

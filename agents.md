@@ -70,6 +70,12 @@ miku-blog/
 ## 协作补充规则（强约束）
 - **严格按需求范围修改**：用户指定了文件或组件时，仅修改该范围；未经明确要求，禁止连带调整其它页面或组件。
 - **禁止“顺手优化”**：未被请求时，不要替换文案、主题风格、字体方案、布局结构，不做跨文件批量清理。
+- **文案集中管理（DIY 规范）**：
+  - 所有“用户可见、可能运营改动”的文案，禁止在页面/组件内直接写死，必须优先放到 `frontend/src/content/copy/` 对应模块（如 `site.ts`、`admin.ts`）。
+  - 组件仅通过 `import { ...Copy } from '../../content/copy'`（或等价相对路径）读取文案；仅允许保留技术常量（如状态枚举、协议字段、SQL 字段名）在业务代码内。
+  - 新增页面/组件时，先新增或扩展 copy 模块字段，再接入模板；不要先写死后再迁移。
+  - copy 模块必须写“DIY 注释”，说明该文件是文案入口、建议修改位置与影响范围。
+  - PR/提交若新增硬编码文案，需要同时说明为什么不能进入 copy（若无理由视为不合规范）。
 - **LiquidGlassCard 调用约定**：
   - 页面/业务组件层默认只允许改 `width` / `maxWidth` / `padding` / `borderRadius` 这类尺寸参数。
   - `blur` / `contrast` / `brightness` / `saturate` / `interactive` / `cornerSoftness` / `displacementStrength` / `edgeRefractionStrength` 等效果参数，除非用户明确提出，否则禁止覆盖。

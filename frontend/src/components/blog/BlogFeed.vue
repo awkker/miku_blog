@@ -13,13 +13,13 @@
     <div v-else-if="error" class="rounded-2xl border border-red-200/60 bg-red-50/60 p-8 text-center">
       <p class="text-sm text-red-600">{{ error }}</p>
       <button type="button" class="mt-3 rounded-xl border border-red-200 bg-white px-4 py-2 text-xs text-red-600 transition hover:bg-red-50" @click="load">
-        重试
+        {{ copy.retry }}
       </button>
     </div>
 
     <!-- Empty -->
     <div v-else-if="posts.length === 0" class="rounded-2xl border border-slate-200/60 bg-white/60 p-12 text-center">
-      <p class="text-sm text-slate-500">暂无已发布的文章</p>
+      <p class="text-sm text-slate-500">{{ copy.empty }}</p>
     </div>
 
     <!-- Post list -->
@@ -40,7 +40,7 @@
             </div>
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/35 via-transparent to-transparent" />
             <div class="absolute left-4 top-4 rounded-full border border-white/45 bg-white/22 px-3 py-1 text-xs font-semibold text-white backdrop-blur">
-              置顶阅读
+              {{ copy.featuredBadge }}
             </div>
           </div>
 
@@ -63,13 +63,13 @@
 
             <div class="grid gap-2 text-xs text-slate-500 sm:grid-cols-3">
               <span class="rounded-lg border border-slate-200 bg-white/75 px-2.5 py-1.5">
-                {{ featured.view_count.toLocaleString() }} 次阅读
+                {{ featured.view_count.toLocaleString() }}{{ copy.readSuffix }}
               </span>
               <span class="rounded-lg border border-slate-200 bg-white/75 px-2.5 py-1.5">
-                {{ featured.like_count }} 点赞
+                {{ featured.like_count }}{{ copy.likeSuffix }}
               </span>
               <span class="rounded-lg border border-slate-200 bg-white/75 px-2.5 py-1.5">
-                发布：{{ formatDate(featured.published_at || featured.created_at) }}
+                {{ copy.publishedPrefix }}{{ formatDate(featured.published_at || featured.created_at) }}
               </span>
             </div>
           </div>
@@ -133,7 +133,7 @@
                   {{ post.view_count.toLocaleString() }}
                 </span>
                 <span class="h-0.5 w-0.5 rounded-full bg-slate-300" />
-                <span>{{ post.like_count }} 赞</span>
+                <span>{{ post.like_count }}{{ copy.shortLikeSuffix }}</span>
               </div>
             </div>
           </a>
@@ -165,6 +165,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 import { api, type PagedData } from '../../lib/api'
+import { siteCopy } from '../../content/copy'
 
 interface TagItem {
   name: string
@@ -192,6 +193,7 @@ const page = ref(1)
 const pageSize = 10
 const loading = ref(false)
 const error = ref('')
+const copy = siteCopy.components.blogFeed
 
 const featured = computed(() => posts.value[0] || null)
 const restPosts = computed(() => posts.value.slice(1))
@@ -215,7 +217,7 @@ async function load() {
     posts.value = data.items || []
     total.value = data.total || 0
   } catch {
-    error.value = '加载文章失败，请检查后端服务是否运行'
+    error.value = copy.loadError
     posts.value = []
   } finally {
     loading.value = false

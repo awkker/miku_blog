@@ -10,14 +10,14 @@
           <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current stroke-[1.8]">
             <path d="M4 6h16M7 12h10M10 18h4" />
           </svg>
-          Filter
+          {{ copy.toolbar.filter }}
         </button>
 
         <div class="flex items-center gap-2">
           <button
             type="button"
             class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300/80 bg-white/70 text-slate-700 transition hover:border-miku/45 hover:text-miku"
-            aria-label="上一时间窗口"
+            :aria-label="copy.toolbar.prevWindowAria"
             @click="goPrevWindow"
           >
             <svg viewBox="0 0 24 24" class="h-4 w-4 fill-none stroke-current stroke-[2]">
@@ -28,7 +28,7 @@
           <button
             type="button"
             class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-300/80 bg-white/70 text-slate-700 transition hover:border-miku/45 hover:text-miku disabled:cursor-not-allowed disabled:opacity-45"
-            aria-label="下一时间窗口"
+            :aria-label="copy.toolbar.nextWindowAria"
             :disabled="offset === 0"
             @click="goNextWindow"
           >
@@ -47,12 +47,12 @@
 
       <div v-if="showFilters" class="mt-3 grid gap-3 rounded-2xl border border-slate-200/80 bg-white/58 p-3 md:grid-cols-2">
         <label class="grid gap-1">
-          <span class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Path Filter</span>
+          <span class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{{ copy.toolbar.pathFilter }}</span>
           <input
             v-model.trim="pathKeyword"
             type="text"
             class="rounded-xl border border-slate-300/80 bg-white/90 px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-miku/60"
-            placeholder="输入路径关键字"
+            :placeholder="copy.toolbar.pathPlaceholder"
           >
         </label>
         <div class="grid content-center rounded-xl border border-slate-200/80 bg-white/78 px-3 py-2 text-sm text-slate-600">
@@ -81,14 +81,14 @@
     <LiquidGlassCard max-width="100%" padding="20px">
       <div class="flex items-center justify-between gap-3">
         <div>
-          <h2 class="text-lg font-semibold text-slate-900">Traffic Overview</h2>
-          <p class="text-sm text-slate-600">Visitors 和 Views 的时间分布</p>
+          <h2 class="text-lg font-semibold text-slate-900">{{ copy.sections.trafficOverviewTitle }}</h2>
+          <p class="text-sm text-slate-600">{{ copy.sections.trafficOverviewSubtitle }}</p>
         </div>
         <p class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{{ windowLabel }}</p>
       </div>
 
       <div v-if="status === 'loading' && !analytics" class="mt-4 flex h-[360px] items-center justify-center text-sm text-slate-400">
-        加载中...
+        {{ copy.common.loading }}
       </div>
       <div v-else class="mt-4 h-[360px]">
         <v-chart :option="trendOption" autoresize />
@@ -98,8 +98,8 @@
     <LiquidGlassCard max-width="100%" padding="20px">
       <div class="flex items-center justify-between gap-3">
         <div>
-          <h3 class="text-lg font-semibold text-slate-900">近期事项</h3>
-          <p class="text-sm text-slate-600">管理员最近操作记录</p>
+          <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.recentActivitiesTitle }}</h3>
+          <p class="text-sm text-slate-600">{{ copy.sections.recentActivitiesSubtitle }}</p>
         </div>
       </div>
 
@@ -118,10 +118,10 @@
       </div>
 
       <div v-if="activityLoading" class="mt-4 flex h-[140px] items-center justify-center text-sm text-slate-400">
-        加载中...
+        {{ copy.common.loading }}
       </div>
       <div v-else-if="activityItems.length === 0" class="mt-4 rounded-2xl border border-slate-200/80 bg-white/40 px-4 py-8 text-center text-sm text-slate-500">
-        暂无操作记录
+        {{ copy.common.emptyActivities }}
       </div>
       <div v-else class="mt-4 grid gap-2 md:grid-cols-2">
         <div
@@ -133,14 +133,14 @@
             <p class="text-sm text-slate-700">{{ formatActivity(item) }}</p>
             <span class="shrink-0 text-xs text-slate-500">{{ formatRelativeTime(item.created_at) }}</span>
           </div>
-          <p v-if="item.admin_username" class="mt-1 text-xs text-slate-500">操作人：{{ item.admin_username }}</p>
+          <p v-if="item.admin_username" class="mt-1 text-xs text-slate-500">{{ copy.common.operatorPrefix }}{{ item.admin_username }}</p>
         </div>
       </div>
     </LiquidGlassCard>
 
     <LiquidGlassCard v-if="degradedMode" max-width="100%" padding="14px">
       <p class="text-sm text-amber-700">
-        Analytics 数据暂不可用，当前显示占位数据。请先在 `backend` 目录执行 `go run cmd/migrate/main.go`。
+        {{ copy.degradedMessage }}
       </p>
     </LiquidGlassCard>
 
@@ -148,7 +148,7 @@
       <div class="grid gap-4 xl:grid-cols-2">
         <LiquidGlassCard max-width="100%" padding="20px">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">Pages</h3>
+            <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.pages }}</h3>
             <div class="inline-flex gap-1 rounded-xl border border-slate-200/80 bg-white/70 p-1 text-xs">
               <button
                 v-for="tab in pageTabs"
@@ -165,9 +165,9 @@
 
           <div class="mt-4 text-sm">
             <div class="grid grid-cols-[1fr_auto_auto] border-b border-slate-200/80 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              <span>Path</span>
-              <span class="text-right">Visitors</span>
-              <span class="text-right">%</span>
+              <span>{{ copy.table.path }}</span>
+              <span class="text-right">{{ copy.table.visitors }}</span>
+              <span class="text-right">{{ copy.table.percent }}</span>
             </div>
             <div v-for="row in visiblePageRows" :key="row.path" class="grid grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-slate-100/90 py-2.5 text-slate-700">
               <span class="truncate">{{ row.path }}</span>
@@ -182,13 +182,13 @@
             class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-slate-600 transition hover:text-miku"
             @click="showAllPages = !showAllPages"
           >
-            <span>{{ showAllPages ? 'Less' : 'More' }}</span>
+            <span>{{ showAllPages ? copy.common.less : copy.common.more }}</span>
           </button>
         </LiquidGlassCard>
 
         <LiquidGlassCard max-width="100%" padding="20px">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">Sources</h3>
+            <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.sources }}</h3>
             <div class="inline-flex gap-1 rounded-xl border border-slate-200/80 bg-white/70 p-1 text-xs">
               <button
                 type="button"
@@ -196,7 +196,7 @@
                 :class="sourceTab === 'referrers' ? 'bg-white text-miku shadow-sm' : 'text-slate-500 hover:text-slate-700'"
                 @click="sourceTab = 'referrers'"
               >
-                Referrers
+                {{ copy.tabs.referrers }}
               </button>
               <button
                 type="button"
@@ -204,16 +204,16 @@
                 :class="sourceTab === 'channels' ? 'bg-white text-miku shadow-sm' : 'text-slate-500 hover:text-slate-700'"
                 @click="sourceTab = 'channels'"
               >
-                Channels
+                {{ copy.tabs.channels }}
               </button>
             </div>
           </div>
 
           <div class="mt-4 text-sm">
             <div class="grid grid-cols-[1fr_auto_auto] border-b border-slate-200/80 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              <span>Source</span>
-              <span class="text-right">Visitors</span>
-              <span class="text-right">%</span>
+              <span>{{ copy.table.source }}</span>
+              <span class="text-right">{{ copy.table.visitors }}</span>
+              <span class="text-right">{{ copy.table.percent }}</span>
             </div>
             <div v-for="row in visibleSourceRows" :key="row.name" class="grid grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-slate-100/90 py-2.5 text-slate-700">
               <span class="truncate">{{ row.name }}</span>
@@ -228,13 +228,13 @@
             class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-slate-600 transition hover:text-miku"
             @click="showAllSources = !showAllSources"
           >
-            <span>{{ showAllSources ? 'Less' : 'More' }}</span>
+            <span>{{ showAllSources ? copy.common.less : copy.common.more }}</span>
           </button>
         </LiquidGlassCard>
 
         <LiquidGlassCard max-width="100%" padding="20px">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">Environment</h3>
+            <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.environment }}</h3>
             <div class="inline-flex gap-1 rounded-xl border border-slate-200/80 bg-white/70 p-1 text-xs">
               <button
                 v-for="tab in environmentTabs"
@@ -251,9 +251,9 @@
 
           <div class="mt-4 text-sm">
             <div class="grid grid-cols-[1fr_auto_auto] border-b border-slate-200/80 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              <span>Name</span>
-              <span class="text-right">Visitors</span>
-              <span class="text-right">%</span>
+              <span>{{ copy.table.name }}</span>
+              <span class="text-right">{{ copy.table.visitors }}</span>
+              <span class="text-right">{{ copy.table.percent }}</span>
             </div>
             <div v-for="row in visibleEnvironmentRows" :key="row.name" class="grid grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-slate-100/90 py-2.5 text-slate-700">
               <span class="truncate">{{ row.name }}</span>
@@ -268,13 +268,13 @@
             class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-slate-600 transition hover:text-miku"
             @click="showAllEnvironment = !showAllEnvironment"
           >
-            <span>{{ showAllEnvironment ? 'Less' : 'More' }}</span>
+            <span>{{ showAllEnvironment ? copy.common.less : copy.common.more }}</span>
           </button>
         </LiquidGlassCard>
 
         <LiquidGlassCard max-width="100%" padding="20px">
           <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-slate-900">Location</h3>
+            <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.location }}</h3>
             <div class="inline-flex gap-1 rounded-xl border border-slate-200/80 bg-white/70 p-1 text-xs">
               <button
                 v-for="tab in locationTabs"
@@ -291,9 +291,9 @@
 
           <div class="mt-4 text-sm">
             <div class="grid grid-cols-[1fr_auto_auto] border-b border-slate-200/80 pb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-              <span>Region</span>
-              <span class="text-right">Visitors</span>
-              <span class="text-right">%</span>
+              <span>{{ copy.table.region }}</span>
+              <span class="text-right">{{ copy.table.visitors }}</span>
+              <span class="text-right">{{ copy.table.percent }}</span>
             </div>
             <div v-for="row in visibleLocationRows" :key="row.name" class="grid grid-cols-[1fr_auto_auto] items-center gap-2 border-b border-slate-100/90 py-2.5 text-slate-700">
               <span class="truncate">{{ row.name }}</span>
@@ -308,7 +308,7 @@
             class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-slate-600 transition hover:text-miku"
             @click="showAllLocation = !showAllLocation"
           >
-            <span>{{ showAllLocation ? 'Less' : 'More' }}</span>
+            <span>{{ showAllLocation ? copy.common.less : copy.common.more }}</span>
           </button>
         </LiquidGlassCard>
       </div>
@@ -316,8 +316,8 @@
       <div class="grid gap-4 xl:grid-cols-[2fr_1fr]">
         <LiquidGlassCard max-width="100%" padding="20px">
           <div class="flex items-center justify-between gap-3">
-            <h3 class="text-lg font-semibold text-slate-900">Geo Distribution</h3>
-            <span class="text-xs text-slate-500">By Country</span>
+            <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.geoDistribution }}</h3>
+            <span class="text-xs text-slate-500">{{ copy.sections.byCountry }}</span>
           </div>
 
           <div class="mt-4 h-[360px]">
@@ -336,7 +336,7 @@
         </LiquidGlassCard>
 
         <LiquidGlassCard max-width="100%" padding="20px">
-          <h3 class="text-lg font-semibold text-slate-900">Traffic</h3>
+          <h3 class="text-lg font-semibold text-slate-900">{{ copy.sections.traffic }}</h3>
           <div class="mt-4 grid grid-cols-[42px_repeat(7,minmax(0,1fr))] items-center gap-x-1.5 gap-y-1 text-xs text-slate-600">
             <div />
             <div v-for="day in weekDays" :key="day" class="text-center font-semibold">{{ day }}</div>
@@ -367,6 +367,7 @@ import VChart from 'vue-echarts'
 import { api } from '../../lib/api'
 import { authState, hydrateAuth } from '../../stores/auth'
 import { setScopeStatus } from '../../stores/loading'
+import { adminCopy } from '../../content/copy'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
 import SkeletonCard from '../ui/SkeletonCard.vue'
 
@@ -377,6 +378,9 @@ type PageTabKey = 'path' | 'entry' | 'exit'
 type SourceTabKey = 'referrers' | 'channels'
 type EnvironmentTabKey = 'browsers' | 'os' | 'devices'
 type LocationTabKey = 'countries' | 'regions' | 'cities'
+
+// DIY 文案入口：后台仪表盘文案统一由 copy 提供，避免模板中散落写死字符串。
+const copy = adminCopy.dashboard
 
 interface MetricValue {
   value: number
@@ -492,34 +496,34 @@ const activityItems = ref<AuditLogItem[]>([])
 const activityLoading = ref(true)
 
 const rangeOptions: Array<{ key: RangeKey; label: string }> = [
-  { key: '24h', label: 'Last 24 hours' },
-  { key: '7d', label: 'Last 7 days' },
-  { key: '30d', label: 'Last 30 days' },
+  { key: '24h', label: copy.ranges.h24 },
+  { key: '7d', label: copy.ranges.d7 },
+  { key: '30d', label: copy.ranges.d30 },
 ]
 
 const pageTabs: Array<{ key: PageTabKey; label: string }> = [
-  { key: 'path', label: 'Path' },
-  { key: 'entry', label: 'Entry' },
-  { key: 'exit', label: 'Exit' },
+  { key: 'path', label: copy.tabs.path },
+  { key: 'entry', label: copy.tabs.entry },
+  { key: 'exit', label: copy.tabs.exit },
 ]
 
 const environmentTabs: Array<{ key: EnvironmentTabKey; label: string }> = [
-  { key: 'browsers', label: 'Browsers' },
-  { key: 'os', label: 'OS' },
-  { key: 'devices', label: 'Devices' },
+  { key: 'browsers', label: copy.tabs.browsers },
+  { key: 'os', label: copy.tabs.os },
+  { key: 'devices', label: copy.tabs.devices },
 ]
 
 const locationTabs: Array<{ key: LocationTabKey; label: string }> = [
-  { key: 'countries', label: 'Countries' },
-  { key: 'regions', label: 'Regions' },
-  { key: 'cities', label: 'Cities' },
+  { key: 'countries', label: copy.tabs.countries },
+  { key: 'regions', label: copy.tabs.regions },
+  { key: 'cities', label: copy.tabs.cities },
 ]
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const hours = Array.from({ length: 24 }, (_, idx) => idx)
 
 const windowLabel = computed(() => {
-  const base = analytics.value?.window.label || rangeOptions.find((x) => x.key === selectedRange.value)?.label || 'Window'
+  const base = analytics.value?.window.label || rangeOptions.find((x) => x.key === selectedRange.value)?.label || copy.common.windowFallback
   if (offset.value === 0) return base
   return `${base} · -${offset.value}`
 })
@@ -527,7 +531,7 @@ const windowLabel = computed(() => {
 const formattedWindowRange = computed(() => {
   const start = analytics.value?.window.start
   const end = analytics.value?.window.end
-  if (!start || !end) return '--'
+  if (!start || !end) return copy.common.noData
   return `${formatDateTime(start)} ~ ${formatDateTime(end)}`
 })
 
@@ -542,8 +546,8 @@ const moderationNotices = computed(() => {
   if (pendingCount > 0) {
     notices.push({
       key: 'pending',
-      title: `评论留言待审核：${formatInteger(pendingCount)} 条`,
-      subtitle: '建议优先处理审核队列，避免积压',
+      title: `${copy.notices.pendingPrefix}${formatInteger(pendingCount)}${copy.notices.pendingSuffix}`,
+      subtitle: copy.notices.pendingSubtitle,
       tone: 'amber',
     })
   }
@@ -551,8 +555,8 @@ const moderationNotices = computed(() => {
   if (draftCount > 0) {
     notices.push({
       key: 'draft',
-      title: `草稿待发布：${formatInteger(draftCount)} 篇`,
-      subtitle: '可前往文章管理检查内容后发布',
+      title: `${copy.notices.draftPrefix}${formatInteger(draftCount)}${copy.notices.draftSuffix}`,
+      subtitle: copy.notices.draftSubtitle,
       tone: 'sky',
     })
   }
@@ -564,11 +568,11 @@ const statCards = computed(() => {
   const s = analytics.value?.summary
   if (!s) return []
   return [
-    { label: 'Visitors', value: formatInteger(s.visitors.value), change: s.visitors.change, inverse: false },
-    { label: 'Visits', value: formatInteger(s.visits.value), change: s.visits.change, inverse: false },
-    { label: 'Views', value: formatInteger(s.views.value), change: s.views.change, inverse: false },
-    { label: 'Bounce rate', value: `${s.bounce_rate.value.toFixed(1)}%`, change: s.bounce_rate.change, inverse: true },
-    { label: 'Visit duration', value: formatDuration(s.visit_duration.value), change: s.visit_duration.change, inverse: false },
+    { label: copy.stats.visitors, value: formatInteger(s.visitors.value), change: s.visitors.change, inverse: false },
+    { label: copy.stats.visits, value: formatInteger(s.visits.value), change: s.visits.change, inverse: false },
+    { label: copy.stats.views, value: formatInteger(s.views.value), change: s.views.change, inverse: false },
+    { label: copy.stats.bounceRate, value: `${s.bounce_rate.value.toFixed(1)}%`, change: s.bounce_rate.change, inverse: true },
+    { label: copy.stats.visitDuration, value: formatDuration(s.visit_duration.value), change: s.visit_duration.change, inverse: false },
   ]
 })
 
@@ -587,7 +591,7 @@ const trendOption = computed(() => {
       right: 0,
       top: 0,
       textStyle: { color: '#64748b', fontSize: 12 },
-      data: ['Visitors', 'Views'],
+      data: [copy.stats.visitors, copy.stats.views],
     },
     grid: {
       left: 12,
@@ -610,7 +614,7 @@ const trendOption = computed(() => {
     },
     series: [
       {
-        name: 'Visitors',
+        name: copy.stats.visitors,
         type: 'bar',
         data: trend.map((item) => item.visitors),
         barMaxWidth: 28,
@@ -620,7 +624,7 @@ const trendOption = computed(() => {
         },
       },
       {
-        name: 'Views',
+        name: copy.stats.views,
         type: 'bar',
         data: trend.map((item) => item.views),
         barMaxWidth: 28,
@@ -693,7 +697,7 @@ const mapOption = computed(() => {
   return {
     tooltip: {
       trigger: 'item',
-      formatter: (params: { name?: string; value?: number }) => `${params.name || 'Unknown'}: ${formatInteger(params.value || 0)}`,
+      formatter: (params: { name?: string; value?: number }) => `${params.name || copy.common.unknown}: ${formatInteger(params.value || 0)}`,
       backgroundColor: 'rgba(255,255,255,0.96)',
       borderColor: 'rgba(148,163,184,0.25)',
       textStyle: { color: '#334155' },
@@ -737,9 +741,9 @@ const topCountries = computed(() => {
 })
 
 const mapFallbackText = computed(() => {
-  if (worldMapLoading.value) return '世界地图加载中...'
-  if (mapSeries.value.length === 0) return '暂无国家分布数据'
-  return '无法加载地图底图，已在下方显示国家排行'
+  if (worldMapLoading.value) return copy.mapFallback.loading
+  if (mapSeries.value.length === 0) return copy.mapFallback.empty
+  return copy.mapFallback.failed
 })
 
 const trafficLookup = computed(() => {
@@ -770,7 +774,7 @@ function buildWindow(range: RangeKey, pageOffset: number) {
     start.setHours(start.getHours() - 24)
 
     return {
-      label: 'Last 24 hours',
+      label: copy.ranges.h24,
       granularity: 'hour',
       start,
       end,
@@ -787,7 +791,7 @@ function buildWindow(range: RangeKey, pageOffset: number) {
   start.setDate(start.getDate() - days)
 
   return {
-    label: range === '7d' ? 'Last 7 days' : 'Last 30 days',
+    label: range === '7d' ? copy.ranges.d7 : copy.ranges.d30,
     granularity: 'day',
     start,
     end,
@@ -912,29 +916,14 @@ function pageMetricValue(item: AnalyticsPageItem): number {
   return item.visitors
 }
 
-const ACTION_MAP: Record<string, string> = {
-  approve: '通过了',
-  reject: '拒绝了',
-  delete: '删除了',
-  create: '创建了',
-  update: '更新了',
-  publish: '发布了',
-  unpublish: '下架了',
-  schedule: '定时发布了',
-}
+const ACTION_MAP: Record<string, string> = copy.actions
 
-const TARGET_MAP: Record<string, string> = {
-  comment: '评论',
-  post: '文章',
-  friend_link: '友链',
-  guestbook: '留言',
-  moment: '说说',
-}
+const TARGET_MAP: Record<string, string> = copy.targets
 
 function formatActivity(item: AuditLogItem): string {
   const action = ACTION_MAP[item.action] || item.action
   const target = TARGET_MAP[item.target_type] || item.target_type
-  return `${action}一条${target}`
+  return `${action}${copy.common.activityTargetPrefix}${target}`
 }
 
 function formatRelativeTime(iso: string): string {
@@ -944,14 +933,14 @@ function formatRelativeTime(iso: string): string {
   const now = Date.now()
   const diffMs = now - d.getTime()
   const mins = Math.floor(diffMs / 60000)
-  if (mins < 1) return '刚刚'
-  if (mins < 60) return `${mins} 分钟前`
+  if (mins < 1) return copy.common.justNow
+  if (mins < 60) return `${mins} ${copy.common.minutesAgo}`
 
   const hoursDiff = Math.floor(mins / 60)
-  if (hoursDiff < 24) return `${hoursDiff} 小时前`
+  if (hoursDiff < 24) return `${hoursDiff} ${copy.common.hoursAgo}`
 
   const days = Math.floor(hoursDiff / 24)
-  if (days < 7) return `${days} 天前`
+  if (days < 7) return `${days} ${copy.common.daysAgo}`
 
   return d.toLocaleString('zh-CN', {
     month: '2-digit',
@@ -1016,7 +1005,7 @@ function formatDateTime(iso: string): string {
 }
 
 function countryName(code: string): string {
-  if (!code || code === 'ZZ') return 'Unknown'
+  if (!code || code === 'ZZ') return copy.common.unknown
   try {
     if (typeof Intl !== 'undefined' && 'DisplayNames' in Intl) {
       const displayNames = new Intl.DisplayNames(['en'], { type: 'region' })
