@@ -16,6 +16,9 @@
         :alt="`封面 ${i + 1}`"
         class="parallax-img absolute inset-0 h-full w-full object-cover"
         :class="mounted && i === currentIndex ? 'is-active' : ''"
+        :loading="i === currentIndex ? 'eager' : 'lazy'"
+        :fetchpriority="i === currentIndex ? 'high' : 'low'"
+        decoding="async"
         draggable="false"
       />
     </div>

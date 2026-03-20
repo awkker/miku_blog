@@ -128,6 +128,7 @@ const currentTrack = computed(() => playlist[currentIndex.value])
 
 function createAudio() {
   audio = new Audio()
+  audio.preload = 'none'
   audio.volume = volume.value
   audio.src = currentTrack.value.src
   audio.addEventListener('loadedmetadata', () => { duration.value = audio!.duration })

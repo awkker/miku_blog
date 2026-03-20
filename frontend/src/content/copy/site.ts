@@ -27,6 +27,12 @@ export const siteCopy = {
     metaDescription: 'nanamiku blog 开屏页',
     heroTitle: '薰逸の猫窝',
     heroSubtitle: '「月が綺麗ですね, 風も優しいですね」。',
+    // DIY 入口：首页轮播背景图。可按需增删顺序，建议使用 `public/` 下的静态路径。
+    heroImages: [
+      '/picture/fengmian/1.webp',
+      '/picture/fengmian/2.webp',
+      '/picture/fengmian/3.webp',
+    ],
     dockItems: [
       { name: '访客', href: '/about', icon: 'person' },
       { name: '博客', href: '/blog', icon: 'book' },
