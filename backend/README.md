@@ -25,7 +25,7 @@ backend/
 │   ├── handler/
 │   │   ├── admin/              # Admin-only handlers (auth, dashboard, moderation, posts, friends)
 │   │   └── public/             # Public handlers (health, guestbook, moments, friends, posts, comments)
-│   ├── jobs/                   # Background jobs (health check)
+│   ├── jobs/                   # Background jobs (health check, scheduled publish)
 │   ├── middleware/             # Recovery, RequestID, Logger, CORS, Auth, Visitor, RateLimit
 │   └── service/                # Business logic layer
 ├── query/                      # sqlc generated Go code (DO NOT EDIT)
@@ -165,6 +165,7 @@ Server runs at `http://localhost:8080`.
 | POST | `/api/v1/admin/comments/:id/approve` | Approve comment |
 | POST | `/api/v1/admin/comments/:id/reject` | Reject comment |
 | DELETE | `/api/v1/admin/comments/:id` | Delete comment |
+| GET | `/api/v1/admin/moderation/rate-limit-metrics?minutes=60` | Rate limit metrics |
 | GET | `/api/v1/admin/audit-logs` | Audit logs |
 | GET | `/api/v1/admin/friends` | List all friends |
 | POST | `/api/v1/admin/friends` | Create friend link |
@@ -178,6 +179,13 @@ Server runs at `http://localhost:8080`.
 | POST | `/api/v1/admin/posts/:id/unpublish` | Unpublish post |
 | POST | `/api/v1/admin/posts/:id/schedule` | Schedule post |
 | DELETE | `/api/v1/admin/posts/:id` | Delete post |
+| GET | `/api/v1/admin/moments` | List all moments |
+| POST | `/api/v1/admin/moments` | Create moment |
+| PUT | `/api/v1/admin/moments/:id` | Update moment |
+| POST | `/api/v1/admin/moments/:id/publish` | Publish moment |
+| POST | `/api/v1/admin/moments/:id/unpublish` | Unpublish moment |
+| POST | `/api/v1/admin/moments/:id/schedule` | Schedule moment |
+| GET | `/api/v1/admin/backup/export?format=json|sql` | Export backup |
 
 ## Development
 

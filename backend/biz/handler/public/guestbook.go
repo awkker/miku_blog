@@ -15,11 +15,12 @@ import (
 )
 
 type GuestbookHandler struct {
-	svc *service.GuestbookService
+	svc    *service.GuestbookService
+	modSvc *service.ModerationService
 }
 
-func NewGuestbookHandler(svc *service.GuestbookService) *GuestbookHandler {
-	return &GuestbookHandler{svc: svc}
+func NewGuestbookHandler(svc *service.GuestbookService, modSvc *service.ModerationService) *GuestbookHandler {
+	return &GuestbookHandler{svc: svc, modSvc: modSvc}
 }
 
 func (h *GuestbookHandler) List(ctx context.Context, c *app.RequestContext) {
@@ -53,6 +54,18 @@ func (h *GuestbookHandler) Create(ctx context.Context, c *app.RequestContext) {
 	if req.AuthorName == "" || req.Content == "" {
 		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "author_name and content required"))
 		return
+	}
+
+	if h.modSvc != nil {
+		word, err := h.modSvc.FindSensitiveWord(ctx, req.AuthorName, req.Content)
+		if err != nil {
+			c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "sensitive-word check failed"))
+			return
+		}
+		if word != "" {
+			c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBlocked, "message contains blocked keyword"))
+			return
+		}
 	}
 
 	ipHash := hashStr(c.ClientIP())

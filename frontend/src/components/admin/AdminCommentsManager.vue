@@ -24,6 +24,70 @@
       </div>
     </LiquidGlassCard>
 
+    <LiquidGlassCard padding="20px">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-slate-900">{{ rateCopy.title }}</h2>
+          <p class="mt-1 text-sm text-slate-600">{{ rateCopy.subtitle }}</p>
+        </div>
+        <button
+          type="button"
+          class="rounded-xl border border-slate-200/80 bg-white/60 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-white"
+          :disabled="rateLoading"
+          @click="loadRateLimitMetrics"
+        >
+          {{ rateCopy.refresh }}
+        </button>
+      </div>
+
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div class="rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ rateCopy.totalAllowed }}</p>
+          <p class="mt-1 text-2xl font-semibold text-emerald-600">{{ totalAllowed }}</p>
+        </div>
+        <div class="rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3">
+          <p class="text-xs uppercase tracking-[0.18em] text-slate-500">{{ rateCopy.totalBlocked }}</p>
+          <p class="mt-1 text-2xl font-semibold text-red-500">{{ totalBlocked }}</p>
+        </div>
+      </div>
+
+      <div v-if="rateLoading" class="mt-4 rounded-xl border border-slate-200/70 bg-white/40 px-4 py-8 text-center text-sm text-slate-500">
+        {{ rateCopy.loading }}
+      </div>
+      <div v-else-if="!rateMetrics || rateMetrics.trend.length === 0" class="mt-4 rounded-xl border border-slate-200/70 bg-white/40 px-4 py-8 text-center text-sm text-slate-500">
+        {{ rateCopy.noData }}
+      </div>
+      <div v-else class="mt-4 grid gap-4 xl:grid-cols-[1.4fr_1fr]">
+        <div class="rounded-xl border border-slate-200/70 bg-white/50 p-3">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{{ rateCopy.trendTitle }}</p>
+          <div class="h-64">
+            <v-chart :option="rateTrendOption" autoresize />
+          </div>
+        </div>
+        <div class="rounded-xl border border-slate-200/70 bg-white/50 p-3">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{{ rateCopy.ruleTitle }}</p>
+          <div class="text-xs text-slate-600">
+            <div class="grid grid-cols-[1fr_auto_auto_auto] gap-2 border-b border-slate-200/70 pb-2 font-semibold text-slate-500">
+              <span>{{ rateCopy.ruleColumn }}</span>
+              <span class="text-right">{{ rateCopy.allowedColumn }}</span>
+              <span class="text-right">{{ rateCopy.blockedColumn }}</span>
+              <span class="text-right">{{ rateCopy.totalColumn }}</span>
+            </div>
+            <div
+              v-for="item in rateRules"
+              :key="item.rule"
+              class="grid grid-cols-[1fr_auto_auto_auto] gap-2 border-b border-slate-100/80 py-2"
+            >
+              <span class="truncate">{{ item.rule }}</span>
+              <span class="text-right text-emerald-600">{{ item.allowed }}</span>
+              <span class="text-right text-red-500">{{ item.blocked }}</span>
+              <span class="text-right">{{ item.total }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </LiquidGlassCard>
+
     <LiquidGlassCard padding="0px">
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
@@ -127,11 +191,19 @@
 </template>
 
 <script setup lang="ts">
+import { use } from 'echarts/core'
+import { LineChart } from 'echarts/charts'
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
+import { CanvasRenderer } from 'echarts/renderers'
 import { computed, onMounted, ref } from 'vue'
+import VChart from 'vue-echarts'
 
 import { api, ApiError, type PagedData } from '../../lib/api'
+import { adminCopy } from '../../content/copy'
 import { showToast } from '../../stores/ui'
 import LiquidGlassCard from '../ui/LiquidGlassCard.vue'
+
+use([CanvasRenderer, LineChart, GridComponent, TooltipComponent, LegendComponent])
 
 type SourceType = 'post' | 'guestbook'
 type CommentStatus = 'pending' | 'approved' | 'rejected'
@@ -171,10 +243,32 @@ interface ModerationItem {
   createdAt: string
 }
 
+interface RateLimitRuleMetric {
+  rule: string
+  allowed: number
+  blocked: number
+  total: number
+}
+
+interface RateLimitTrendPoint {
+  bucket: string
+  allowed: number
+  blocked: number
+}
+
+interface RateLimitMetrics {
+  window_minutes: number
+  total_allowed: number
+  total_blocked: number
+  rules: RateLimitRuleMetric[]
+  trend: RateLimitTrendPoint[]
+}
+
 const sourceTabs: Array<{ label: string; value: SourceType }> = [
   { label: '文章评论', value: 'post' },
   { label: '留言板留言', value: 'guestbook' },
 ]
+const rateCopy = adminCopy.moderation.rateLimit
 
 const activeSource = ref<SourceType>('post')
 const comments = ref<ModerationItem[]>([])
@@ -182,6 +276,8 @@ const loading = ref(false)
 const page = ref(1)
 const pageSize = 20
 const total = ref(0)
+const rateMetrics = ref<RateLimitMetrics | null>(null)
+const rateLoading = ref(false)
 
 function mapStatus(s: string): CommentStatus {
   if (s === 'approved') return 'approved'
@@ -265,6 +361,20 @@ async function loadComments() {
   }
 }
 
+async function loadRateLimitMetrics() {
+  rateLoading.value = true
+  try {
+    rateMetrics.value = await api.get<RateLimitMetrics>('/admin/moderation/rate-limit-metrics?minutes=60')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '加载限流指标失败'
+    console.error('[AdminComments] loadRateLimitMetrics failed:', err)
+    showToast(msg, 'error')
+    rateMetrics.value = null
+  } finally {
+    rateLoading.value = false
+  }
+}
+
 function changeSource(source: SourceType) {
   if (activeSource.value === source) return
   activeSource.value = source
@@ -334,10 +444,57 @@ async function deleteComment(item: ModerationItem) {
 
 onMounted(() => {
   loadComments()
+  loadRateLimitMetrics()
 })
 
 const pendingCount = computed(() => comments.value.filter((c) => c.status === 'pending').length)
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
+const totalAllowed = computed(() => Number(rateMetrics.value?.total_allowed || 0))
+const totalBlocked = computed(() => Number(rateMetrics.value?.total_blocked || 0))
+const rateRules = computed(() => rateMetrics.value?.rules || [])
+const rateTrendOption = computed(() => {
+  const trend = rateMetrics.value?.trend || []
+  return {
+    backgroundColor: 'transparent',
+    tooltip: { trigger: 'axis' },
+    legend: {
+      top: 0,
+      textStyle: { color: '#64748b', fontSize: 11 },
+      data: [rateCopy.allowedLegend, rateCopy.blockedLegend],
+    },
+    grid: { top: 36, left: 40, right: 16, bottom: 30 },
+    xAxis: {
+      type: 'category',
+      data: trend.map((item) => item.bucket.slice(-5)),
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
+      axisLabel: { color: '#64748b', fontSize: 10 },
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: 'rgba(148,163,184,0.2)' } },
+      axisLabel: { color: '#64748b', fontSize: 10 },
+    },
+    series: [
+      {
+        name: rateCopy.allowedLegend,
+        type: 'line',
+        smooth: true,
+        data: trend.map((item) => item.allowed),
+        lineStyle: { color: '#10b981', width: 2 },
+        itemStyle: { color: '#10b981' },
+      },
+      {
+        name: rateCopy.blockedLegend,
+        type: 'line',
+        smooth: true,
+        data: trend.map((item) => item.blocked),
+        lineStyle: { color: '#ef4444', width: 2 },
+        itemStyle: { color: '#ef4444' },
+      },
+    ],
+  }
+})
 
 function statusClass(status: CommentStatus) {
   if (status === 'approved') return 'bg-emerald-100 text-emerald-700'

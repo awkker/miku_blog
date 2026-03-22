@@ -10,6 +10,38 @@ export const adminCopy = {
   layout: {
     defaultPageTitle: '仪表盘',
   },
+  backup: {
+    title: '数据导出与备份',
+    subtitle: '一键导出 JSON 或 SQL 备份，方便迁移与灾备。',
+    jsonCardTitle: 'JSON 备份',
+    jsonCardDescription: '导出结构化 JSON，适合审计与跨环境传输。',
+    sqlCardTitle: 'SQL 备份',
+    sqlCardDescription: '导出可直接回放的 SQL 脚本，适合完整恢复。',
+    jsonButton: '导出 JSON',
+    sqlButton: '导出 SQL',
+    exporting: '导出中...',
+    success: '备份导出成功',
+    failed: '备份导出失败，请稍后重试',
+  },
+  moderation: {
+    rateLimit: {
+      title: 'Redis 限流观测',
+      subtitle: '最近窗口的放行/拦截趋势与规则命中分布。',
+      refresh: '刷新',
+      loading: '加载中...',
+      totalAllowed: '放行总数',
+      totalBlocked: '拦截总数',
+      ruleTitle: '规则命中',
+      trendTitle: '分钟趋势',
+      noData: '暂无限流数据',
+      allowedLegend: '放行',
+      blockedLegend: '拦截',
+      ruleColumn: '规则',
+      allowedColumn: '放行',
+      blockedColumn: '拦截',
+      totalColumn: '总计',
+    },
+  },
   dashboard: {
     toolbar: {
       filter: 'Filter',

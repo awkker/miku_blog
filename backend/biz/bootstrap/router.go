@@ -17,6 +17,7 @@ import (
 type Services struct {
 	Auth       *service.AuthService
 	Guestbook  *service.GuestbookService
+	Posts      *service.PostsService
 	Moments    *service.MomentsService
 	Friends    *service.FriendsService
 	Dashboard  *service.DashboardService
@@ -44,9 +45,10 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 		slog.Warn("geoip resolver disabled", "error", err)
 	}
 	dashboardSvc := service.NewDashboardService(db, geoResolver)
-	moderationSvc := service.NewModerationService(db)
+	moderationSvc := service.NewModerationService(db, rdb)
 	postsSvc := service.NewPostsService(db)
 	postCommentsSvc := service.NewPostCommentsService(db)
+	backupSvc := service.NewBackupService(db)
 	weatherSvc := service.NewWeatherService(rdb, cfg.Weather.Location)
 
 	tokenValidator := func(tokenStr string) (*middleware.AdminClaims, error) {
@@ -63,17 +65,18 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 
 	healthH := public.NewHealthHandler(db, rdb)
 	authH := admin.NewAuthHandler(authSvc)
-	guestbookH := public.NewGuestbookHandler(guestbookSvc)
-	momentsH := public.NewMomentsHandler(momentsSvc)
+	guestbookH := public.NewGuestbookHandler(guestbookSvc, moderationSvc)
+	momentsH := public.NewMomentsHandler(momentsSvc, moderationSvc)
 	friendsH := public.NewFriendsHandler(friendsSvc)
 	analyticsH := public.NewAnalyticsHandler(dashboardSvc)
 	dashboardH := admin.NewDashboardHandler(dashboardSvc)
 	moderationH := admin.NewModerationHandler(moderationSvc)
 	friendsAdminH := admin.NewFriendsAdminHandler(moderationSvc)
 	postsH := public.NewPostsHandler(postsSvc)
-	postCommentsH := public.NewPostCommentsHandler(postCommentsSvc)
+	postCommentsH := public.NewPostCommentsHandler(postCommentsSvc, moderationSvc)
 	postsAdminH := admin.NewPostsAdminHandler(postsSvc, moderationSvc)
 	momentsAdminH := admin.NewMomentsAdminHandler(momentsSvc, moderationSvc)
+	backupH := admin.NewBackupHandler(backupSvc)
 	weatherH := public.NewWeatherHandler(weatherSvc)
 
 	api := h.Group("/api/v1")
@@ -156,6 +159,7 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 
 			// Moderation - audit
 			adm.GET("/audit-logs", moderationH.ListAuditLogs)
+			adm.GET("/moderation/rate-limit-metrics", moderationH.RateLimitMetrics)
 
 			// Friends CRUD
 			adm.GET("/friends", friendsAdminH.List)
@@ -174,13 +178,22 @@ func RegisterRoutes(h *server.Hertz, db *pgxpool.Pool, rdb *redis.Client, cfg *C
 			adm.DELETE("/posts/:id", postsAdminH.Delete)
 
 			// Moments CRUD
+			adm.GET("/moments", momentsAdminH.List)
+			adm.POST("/moments", momentsAdminH.Create)
 			adm.PUT("/moments/:id", momentsAdminH.Update)
+			adm.POST("/moments/:id/publish", momentsAdminH.Publish)
+			adm.POST("/moments/:id/unpublish", momentsAdminH.Unpublish)
+			adm.POST("/moments/:id/schedule", momentsAdminH.Schedule)
+
+			// Backup export
+			adm.GET("/backup/export", backupH.Export)
 		}
 	}
 
 	return &Services{
 		Auth:       authSvc,
 		Guestbook:  guestbookSvc,
+		Posts:      postsSvc,
 		Moments:    momentsSvc,
 		Friends:    friendsSvc,
 		Dashboard:  dashboardSvc,

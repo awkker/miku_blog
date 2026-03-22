@@ -4,21 +4,27 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
 
 	"nanamiku-blog/backend/query"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 )
 
 type ModerationService struct {
-	q  *query.Queries
-	db *pgxpool.Pool
+	q   *query.Queries
+	db  *pgxpool.Pool
+	rdb *redis.Client
 }
 
-func NewModerationService(db *pgxpool.Pool) *ModerationService {
-	return &ModerationService{q: query.New(db), db: db}
+func NewModerationService(db *pgxpool.Pool, rdb *redis.Client) *ModerationService {
+	return &ModerationService{q: query.New(db), db: db, rdb: rdb}
 }
 
 func (s *ModerationService) ListSensitiveWords(ctx context.Context) ([]string, error) {
@@ -31,6 +37,194 @@ func (s *ModerationService) CheckBlocked(ctx context.Context, ipHash string) (bo
 		return false, err
 	}
 	return cnt > 0, nil
+}
+
+func (s *ModerationService) FindSensitiveWord(ctx context.Context, texts ...string) (string, error) {
+	words, err := s.q.ListSensitiveWords(ctx)
+	if err != nil {
+		return "", fmt.Errorf("list sensitive words: %w", err)
+	}
+	if len(words) == 0 || len(texts) == 0 {
+		return "", nil
+	}
+
+	normalizedTexts := make([]string, 0, len(texts))
+	for _, text := range texts {
+		t := strings.ToLower(strings.TrimSpace(text))
+		if t != "" {
+			normalizedTexts = append(normalizedTexts, t)
+		}
+	}
+	if len(normalizedTexts) == 0 {
+		return "", nil
+	}
+
+	for _, word := range words {
+		token := strings.ToLower(strings.TrimSpace(word))
+		if token == "" {
+			continue
+		}
+		for _, text := range normalizedTexts {
+			if strings.Contains(text, token) {
+				return word, nil
+			}
+		}
+	}
+	return "", nil
+}
+
+var defaultRateLimitRules = []string{
+	"analytics:collect",
+	"gb:create",
+	"gb:vote",
+	"login",
+	"mt:clike",
+	"mt:comment",
+	"mt:create",
+	"mt:like",
+	"mt:repost",
+	"post:comment",
+	"post:like",
+}
+
+type RateLimitRuleMetric struct {
+	Rule    string `json:"rule"`
+	Allowed int64  `json:"allowed"`
+	Blocked int64  `json:"blocked"`
+	Total   int64  `json:"total"`
+}
+
+type RateLimitTrendPoint struct {
+	Bucket  string `json:"bucket"`
+	Allowed int64  `json:"allowed"`
+	Blocked int64  `json:"blocked"`
+}
+
+type RateLimitMetrics struct {
+	WindowMinutes int                   `json:"window_minutes"`
+	TotalAllowed  int64                 `json:"total_allowed"`
+	TotalBlocked  int64                 `json:"total_blocked"`
+	Rules         []RateLimitRuleMetric `json:"rules"`
+	Trend         []RateLimitTrendPoint `json:"trend"`
+}
+
+func (s *ModerationService) GetRateLimitMetrics(ctx context.Context, minutes int) (*RateLimitMetrics, error) {
+	if s.rdb == nil {
+		return nil, fmt.Errorf("redis not configured")
+	}
+	if minutes <= 0 {
+		minutes = 60
+	}
+	if minutes > 24*60 {
+		minutes = 24 * 60
+	}
+
+	rules, err := s.rdb.SMembers(ctx, "rlm:rules").Result()
+	if err != nil && err != redis.Nil {
+		return nil, fmt.Errorf("read rate-limit rules: %w", err)
+	}
+	rules = normalizeRateLimitRules(rules)
+	if len(rules) == 0 {
+		rules = append([]string{}, defaultRateLimitRules...)
+	}
+
+	now := time.Now().UTC().Truncate(time.Minute)
+	start := now.Add(-time.Duration(minutes-1) * time.Minute)
+	buckets := make([]time.Time, 0, minutes)
+	for i := 0; i < minutes; i++ {
+		buckets = append(buckets, start.Add(time.Duration(i)*time.Minute))
+	}
+
+	keys := make([]string, 0, len(rules)*len(buckets)*2)
+	for _, rule := range rules {
+		for _, bucket := range buckets {
+			b := bucket.Format("200601021504")
+			keys = append(keys,
+				fmt.Sprintf("rlm:%s:%s:allow", rule, b),
+				fmt.Sprintf("rlm:%s:%s:block", rule, b),
+			)
+		}
+	}
+
+	values := make([]interface{}, 0)
+	if len(keys) > 0 {
+		values, err = s.rdb.MGet(ctx, keys...).Result()
+		if err != nil {
+			return nil, fmt.Errorf("read rate-limit metrics: %w", err)
+		}
+	}
+
+	trend := make([]RateLimitTrendPoint, len(buckets))
+	for i, bucket := range buckets {
+		trend[i] = RateLimitTrendPoint{Bucket: bucket.Format("2006-01-02 15:04")}
+	}
+
+	ruleMetrics := make([]RateLimitRuleMetric, 0, len(rules))
+	var totalAllowed int64
+	var totalBlocked int64
+
+	idx := 0
+	for _, rule := range rules {
+		item := RateLimitRuleMetric{Rule: rule}
+		for i := range buckets {
+			allowed := redisValueToInt64(values[idx])
+			idx++
+			blocked := redisValueToInt64(values[idx])
+			idx++
+
+			item.Allowed += allowed
+			item.Blocked += blocked
+			trend[i].Allowed += allowed
+			trend[i].Blocked += blocked
+		}
+		item.Total = item.Allowed + item.Blocked
+		totalAllowed += item.Allowed
+		totalBlocked += item.Blocked
+		ruleMetrics = append(ruleMetrics, item)
+	}
+
+	return &RateLimitMetrics{
+		WindowMinutes: minutes,
+		TotalAllowed:  totalAllowed,
+		TotalBlocked:  totalBlocked,
+		Rules:         ruleMetrics,
+		Trend:         trend,
+	}, nil
+}
+
+func normalizeRateLimitRules(rules []string) []string {
+	seen := make(map[string]struct{}, len(rules))
+	out := make([]string, 0, len(rules))
+	for _, rule := range rules {
+		rule = strings.TrimSpace(rule)
+		if rule == "" {
+			continue
+		}
+		if _, ok := seen[rule]; ok {
+			continue
+		}
+		seen[rule] = struct{}{}
+		out = append(out, rule)
+	}
+	sort.Strings(out)
+	return out
+}
+
+func redisValueToInt64(v interface{}) int64 {
+	switch t := v.(type) {
+	case nil:
+		return 0
+	case int64:
+		return t
+	case string:
+		n, _ := strconv.ParseInt(t, 10, 64)
+		return n
+	case []byte:
+		n, _ := strconv.ParseInt(string(t), 10, 64)
+		return n
+	default:
+		return 0
+	}
 }
 
 func (s *ModerationService) LogAudit(ctx context.Context, adminID uuid.UUID, action, targetType, targetID string, detail interface{}, ip string) error {

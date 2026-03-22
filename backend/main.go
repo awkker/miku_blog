@@ -41,6 +41,7 @@ func main() {
 	svcs := bootstrap.RegisterRoutes(h, db, rdb, cfg)
 
 	jobs.StartHealthCheckJob(ctx, svcs.Friends, 1*time.Hour)
+	jobs.StartPublishSchedulerJob(ctx, svcs.Posts, svcs.Moments, 1*time.Minute)
 
 	slog.Info("server starting", "port", cfg.Server.Port)
 	h.Spin()

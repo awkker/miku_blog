@@ -55,7 +55,11 @@ func (q *Queries) CountAdminPosts(ctx context.Context) (int64, error) {
 }
 
 const countPublishedPosts = `-- name: CountPublishedPosts :one
-SELECT count(*) FROM posts WHERE status = 'published'
+SELECT count(*)
+FROM posts
+WHERE status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
 `
 
 func (q *Queries) CountPublishedPosts(ctx context.Context) (int64, error) {
@@ -66,8 +70,16 @@ func (q *Queries) CountPublishedPosts(ctx context.Context) (int64, error) {
 }
 
 const createPost = `-- name: CreatePost :one
-INSERT INTO posts (slug, title, excerpt, content_markdown, hero_image_url, category, status, created_by, updated_by)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $8)
+INSERT INTO posts (
+    slug, title, excerpt, content_markdown, hero_image_url, category, status,
+    published_at, scheduled_at, created_by, updated_by
+)
+VALUES (
+    $1, $2, $3, $4, $5, $6, $7,
+    CASE WHEN $7 = 'published'::post_status THEN now() ELSE NULL END,
+    CASE WHEN $7 = 'scheduled'::post_status THEN $9 ELSE NULL END,
+    $8, $8
+)
 RETURNING id, created_at
 `
 
@@ -80,6 +92,7 @@ type CreatePostParams struct {
 	Category        string      `json:"category"`
 	Status          PostStatus  `json:"status"`
 	CreatedBy       pgtype.UUID `json:"created_by"`
+	Column9         interface{} `json:"column_9"`
 }
 
 type CreatePostRow struct {
@@ -97,6 +110,7 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (CreateP
 		arg.Category,
 		arg.Status,
 		arg.CreatedBy,
+		arg.Column9,
 	)
 	var i CreatePostRow
 	err := row.Scan(&i.ID, &i.CreatedAt)
@@ -241,10 +255,13 @@ func (q *Queries) GetPostByID(ctx context.Context, id uuid.UUID) (GetPostByIDRow
 
 const getPostBySlug = `-- name: GetPostBySlug :one
 SELECT id, slug, title, excerpt, content_markdown, hero_image_url, category,
-       status, published_at, view_count, like_count, comment_count,
+       status, published_at, scheduled_at, view_count, like_count, comment_count,
        created_by, updated_by, created_at, updated_at
 FROM posts
-WHERE slug = $1 AND status = 'published'
+WHERE slug = $1
+  AND status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
 `
 
 type GetPostBySlugRow struct {
@@ -257,6 +274,7 @@ type GetPostBySlugRow struct {
 	Category        string             `json:"category"`
 	Status          PostStatus         `json:"status"`
 	PublishedAt     pgtype.Timestamptz `json:"published_at"`
+	ScheduledAt     pgtype.Timestamptz `json:"scheduled_at"`
 	ViewCount       int64              `json:"view_count"`
 	LikeCount       int64              `json:"like_count"`
 	CommentCount    int64              `json:"comment_count"`
@@ -279,6 +297,7 @@ func (q *Queries) GetPostBySlug(ctx context.Context, slug string) (GetPostBySlug
 		&i.Category,
 		&i.Status,
 		&i.PublishedAt,
+		&i.ScheduledAt,
 		&i.ViewCount,
 		&i.LikeCount,
 		&i.CommentCount,
@@ -374,7 +393,7 @@ func (q *Queries) IncrementPostViewCount(ctx context.Context, id uuid.UUID) erro
 
 const listAdminPosts = `-- name: ListAdminPosts :many
 SELECT id, slug, title, category, status,
-       published_at, view_count, like_count, comment_count,
+       published_at, scheduled_at, view_count, like_count, comment_count,
        created_at, updated_at
 FROM posts
 ORDER BY created_at DESC
@@ -393,6 +412,7 @@ type ListAdminPostsRow struct {
 	Category     string             `json:"category"`
 	Status       PostStatus         `json:"status"`
 	PublishedAt  pgtype.Timestamptz `json:"published_at"`
+	ScheduledAt  pgtype.Timestamptz `json:"scheduled_at"`
 	ViewCount    int64              `json:"view_count"`
 	LikeCount    int64              `json:"like_count"`
 	CommentCount int64              `json:"comment_count"`
@@ -416,6 +436,7 @@ func (q *Queries) ListAdminPosts(ctx context.Context, arg ListAdminPostsParams) 
 			&i.Category,
 			&i.Status,
 			&i.PublishedAt,
+			&i.ScheduledAt,
 			&i.ViewCount,
 			&i.LikeCount,
 			&i.CommentCount,
@@ -437,6 +458,8 @@ SELECT id, slug, title, excerpt, hero_image_url, category,
        published_at, view_count, like_count, comment_count, created_at
 FROM posts
 WHERE status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
 ORDER BY (view_count + like_count * 3 + comment_count * 5) DESC
 LIMIT $1
 `
@@ -545,7 +568,10 @@ const listPostsByCategory = `-- name: ListPostsByCategory :many
 SELECT id, slug, title, excerpt, hero_image_url, category,
        published_at, view_count, like_count, comment_count, created_at
 FROM posts
-WHERE status = 'published' AND category = $1
+WHERE status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
+  AND category = $1
 ORDER BY published_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -607,6 +633,8 @@ SELECT id, slug, title, excerpt, hero_image_url, category, status,
        published_at, view_count, like_count, comment_count, created_at
 FROM posts
 WHERE status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
 ORDER BY published_at DESC
 LIMIT $1 OFFSET $2
 `
@@ -696,7 +724,9 @@ func (q *Queries) ListScheduledPostsDue(ctx context.Context) ([]ListScheduledPos
 }
 
 const publishPost = `-- name: PublishPost :exec
-UPDATE posts SET status = 'published', published_at = now(), updated_by = $2 WHERE id = $1
+UPDATE posts
+SET status = 'published', published_at = now(), scheduled_at = NULL, updated_by = $2
+WHERE id = $1
 `
 
 type PublishPostParams struct {
@@ -710,7 +740,9 @@ func (q *Queries) PublishPost(ctx context.Context, arg PublishPostParams) error 
 }
 
 const schedulePost = `-- name: SchedulePost :exec
-UPDATE posts SET status = 'scheduled', scheduled_at = $2, updated_by = $3 WHERE id = $1
+UPDATE posts
+SET status = 'scheduled', scheduled_at = $2, published_at = NULL, updated_by = $3
+WHERE id = $1
 `
 
 type SchedulePostParams struct {
@@ -729,7 +761,10 @@ SELECT id, slug, title, excerpt, hero_image_url, category,
        published_at, view_count, like_count, comment_count,
        ts_rank(search_vector, websearch_to_tsquery('simple', $1)) AS rank
 FROM posts
-WHERE status = 'published' AND search_vector @@ websearch_to_tsquery('simple', $1)
+WHERE status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
+  AND search_vector @@ websearch_to_tsquery('simple', $1)
 ORDER BY rank DESC
 LIMIT $2 OFFSET $3
 `
@@ -796,7 +831,9 @@ func (q *Queries) SetPostTags(ctx context.Context, postID uuid.UUID) error {
 }
 
 const unpublishPost = `-- name: UnpublishPost :exec
-UPDATE posts SET status = 'archived', updated_by = $2 WHERE id = $1
+UPDATE posts
+SET status = 'draft', scheduled_at = NULL, updated_by = $2
+WHERE id = $1
 `
 
 type UnpublishPostParams struct {

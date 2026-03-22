@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"nanamiku-blog/backend/query"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -21,16 +23,19 @@ func NewMomentsService(db *pgxpool.Pool) *MomentsService {
 }
 
 type MomentItem struct {
-	ID           uuid.UUID `json:"id"`
-	AuthorName   string    `json:"author_name"`
-	Content      string    `json:"content"`
-	ImageURLs    []string  `json:"image_urls"`
-	LikeCount    int64     `json:"like_count"`
-	RepostCount  int64     `json:"repost_count"`
-	CommentCount int64     `json:"comment_count"`
-	CreatedAt    string    `json:"created_at"`
-	Liked        bool      `json:"liked"`
-	Reposted     bool      `json:"reposted"`
+	ID            uuid.UUID `json:"id"`
+	AuthorName    string    `json:"author_name"`
+	Content       string    `json:"content"`
+	ImageURLs     []string  `json:"image_urls"`
+	LikeCount     int64     `json:"like_count"`
+	RepostCount   int64     `json:"repost_count"`
+	CommentCount  int64     `json:"comment_count"`
+	PublishStatus string    `json:"publish_status,omitempty"`
+	PublishedAt   string    `json:"published_at,omitempty"`
+	ScheduledAt   string    `json:"scheduled_at,omitempty"`
+	CreatedAt     string    `json:"created_at"`
+	Liked         bool      `json:"liked"`
+	Reposted      bool      `json:"reposted"`
 }
 
 type MomentCommentItem struct {
@@ -65,18 +70,26 @@ func (s *MomentsService) List(ctx context.Context, page, size int, visitorID uui
 
 	items := make([]MomentItem, 0, len(rows))
 	for _, r := range rows {
-		items = append(items, MomentItem{
-			ID:           r.ID,
-			AuthorName:   r.AuthorName,
-			Content:      r.Content,
-			ImageURLs:    parseImageURLs(r.ImageUrls),
-			LikeCount:    r.LikeCount,
-			RepostCount:  r.RepostCount,
-			CommentCount: r.CommentCount,
-			CreatedAt:    r.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			Liked:        likeSet[r.ID],
-			Reposted:     repostSet[r.ID],
-		})
+		item := MomentItem{
+			ID:            r.ID,
+			AuthorName:    r.AuthorName,
+			Content:       r.Content,
+			ImageURLs:     parseImageURLs(r.ImageUrls),
+			LikeCount:     r.LikeCount,
+			RepostCount:   r.RepostCount,
+			CommentCount:  r.CommentCount,
+			PublishStatus: string(r.PublishStatus),
+			CreatedAt:     r.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			Liked:         likeSet[r.ID],
+			Reposted:      repostSet[r.ID],
+		}
+		if r.PublishedAt.Valid {
+			item.PublishedAt = r.PublishedAt.Time.Format(time.RFC3339)
+		}
+		if r.ScheduledAt.Valid {
+			item.ScheduledAt = r.ScheduledAt.Time.Format(time.RFC3339)
+		}
+		items = append(items, item)
 	}
 
 	return items, total, nil
@@ -100,36 +113,75 @@ func (s *MomentsService) Latest(ctx context.Context, limit int) ([]MomentItem, e
 	return items, nil
 }
 
-func (s *MomentsService) Create(ctx context.Context, authorName, content string, imageURLs []string, ipHash, uaHash string) (*MomentItem, error) {
-	imgs, _ := json.Marshal(imageURLs)
+type CreateMomentInput struct {
+	AuthorName    string
+	Content       string
+	ImageURLs     []string
+	IPHash        string
+	UAHash        string
+	PublishStatus string
+	ScheduledAt   *time.Time
+}
+
+func (s *MomentsService) Create(ctx context.Context, in CreateMomentInput) (*MomentItem, error) {
+	imgs, _ := json.Marshal(in.ImageURLs)
+	if in.PublishStatus == "" {
+		in.PublishStatus = string(query.MomentPublishStatusPublished)
+	}
+
+	var scheduledAt interface{}
+	if in.ScheduledAt != nil {
+		scheduledAt = pgtype.Timestamptz{Time: *in.ScheduledAt, Valid: true}
+	}
 
 	row, err := s.q.CreateMoment(ctx, query.CreateMomentParams{
-		AuthorName: authorName,
-		Content:    content,
-		ImageUrls:  imgs,
-		IpHash:     ipHash,
-		UaHash:     uaHash,
+		AuthorName:    in.AuthorName,
+		Content:       in.Content,
+		ImageUrls:     imgs,
+		IpHash:        in.IPHash,
+		UaHash:        in.UAHash,
+		PublishStatus: query.MomentPublishStatus(in.PublishStatus),
+		Column7:       scheduledAt,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("create moment: %w", err)
 	}
 
-	return &MomentItem{
-		ID:         row.ID,
-		AuthorName: authorName,
-		Content:    content,
-		ImageURLs:  imageURLs,
-		CreatedAt:  row.CreatedAt.Format("2006-01-02T15:04:05Z"),
-	}, nil
+	item := &MomentItem{
+		ID:            row.ID,
+		AuthorName:    in.AuthorName,
+		Content:       in.Content,
+		ImageURLs:     in.ImageURLs,
+		PublishStatus: in.PublishStatus,
+		CreatedAt:     row.CreatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+	if in.PublishStatus == string(query.MomentPublishStatusPublished) {
+		item.PublishedAt = row.CreatedAt.Format(time.RFC3339)
+	}
+	if in.ScheduledAt != nil {
+		item.ScheduledAt = in.ScheduledAt.Format(time.RFC3339)
+	}
+	return item, nil
 }
 
-func (s *MomentsService) Update(ctx context.Context, momentID uuid.UUID, authorName, content string, imageURLs []string) error {
+func (s *MomentsService) Update(ctx context.Context, momentID uuid.UUID, authorName, content string, imageURLs []string, publishStatus string, scheduledAt *time.Time) error {
 	imgs, _ := json.Marshal(imageURLs)
+	if publishStatus == "" {
+		publishStatus = string(query.MomentPublishStatusPublished)
+	}
+
+	scheduledAtValue := pgtype.Timestamptz{}
+	if scheduledAt != nil {
+		scheduledAtValue = pgtype.Timestamptz{Time: *scheduledAt, Valid: true}
+	}
+
 	return s.q.UpdateMoment(ctx, query.UpdateMomentParams{
-		ID:         momentID,
-		AuthorName: authorName,
-		Content:    content,
-		ImageUrls:  imgs,
+		ID:            momentID,
+		AuthorName:    authorName,
+		Content:       content,
+		ImageUrls:     imgs,
+		PublishStatus: query.MomentPublishStatus(publishStatus),
+		ScheduledAt:   scheduledAtValue,
 	})
 }
 
@@ -243,6 +295,78 @@ func (s *MomentsService) ToggleCommentLike(ctx context.Context, commentID, visit
 	_ = s.q.CreateMomentCommentLike(ctx, query.CreateMomentCommentLikeParams{CommentID: commentID, VisitorID: visitorID})
 	_ = s.q.IncrementMomentCommentLikeCount(ctx, commentID)
 	return true, nil
+}
+
+func (s *MomentsService) ListAdmin(ctx context.Context, page, size int) ([]MomentItem, int64, error) {
+	total, err := s.q.CountAdminMoments(ctx)
+	if err != nil {
+		return nil, 0, fmt.Errorf("count admin moments: %w", err)
+	}
+
+	rows, err := s.q.ListAdminMoments(ctx, query.ListAdminMomentsParams{
+		Limit:  int32(size),
+		Offset: int32((page - 1) * size),
+	})
+	if err != nil {
+		return nil, 0, fmt.Errorf("list admin moments: %w", err)
+	}
+
+	items := make([]MomentItem, 0, len(rows))
+	for _, r := range rows {
+		item := MomentItem{
+			ID:            r.ID,
+			AuthorName:    r.AuthorName,
+			Content:       r.Content,
+			ImageURLs:     parseImageURLs(r.ImageUrls),
+			LikeCount:     r.LikeCount,
+			RepostCount:   r.RepostCount,
+			CommentCount:  r.CommentCount,
+			PublishStatus: string(r.PublishStatus),
+			CreatedAt:     r.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		}
+		if r.PublishedAt.Valid {
+			item.PublishedAt = r.PublishedAt.Time.Format(time.RFC3339)
+		}
+		if r.ScheduledAt.Valid {
+			item.ScheduledAt = r.ScheduledAt.Time.Format(time.RFC3339)
+		}
+		items = append(items, item)
+	}
+	return items, total, nil
+}
+
+func (s *MomentsService) Publish(ctx context.Context, momentID uuid.UUID) error {
+	return s.q.PublishMoment(ctx, momentID)
+}
+
+func (s *MomentsService) Schedule(ctx context.Context, momentID uuid.UUID, at time.Time) error {
+	return s.q.ScheduleMoment(ctx, query.ScheduleMomentParams{
+		ID:          momentID,
+		ScheduledAt: pgtype.Timestamptz{Time: at, Valid: true},
+	})
+}
+
+func (s *MomentsService) Unpublish(ctx context.Context, momentID uuid.UUID) error {
+	return s.q.UnpublishMoment(ctx, momentID)
+}
+
+func (s *MomentsService) PublishDueScheduled(ctx context.Context) (int, error) {
+	rows, err := s.q.ListScheduledMomentsDue(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("list scheduled moments due: %w", err)
+	}
+	if len(rows) == 0 {
+		return 0, nil
+	}
+
+	published := 0
+	for _, row := range rows {
+		if err := s.q.PublishMoment(ctx, row); err != nil {
+			return published, fmt.Errorf("publish scheduled moment %s: %w", row, err)
+		}
+		published++
+	}
+	return published, nil
 }
 
 func (s *MomentsService) getInteractionSets(ctx context.Context, visitorID uuid.UUID, ids []uuid.UUID) (likes, reposts map[uuid.UUID]bool) {

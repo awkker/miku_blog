@@ -6,6 +6,7 @@ package query
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +27,7 @@ type Querier interface {
 	CountAdminComments(ctx context.Context, status NullModerationStatus) (int64, error)
 	CountAdminFriendLinks(ctx context.Context) (int64, error)
 	CountAdminGuestbookMessages(ctx context.Context, status NullModerationStatus) (int64, error)
+	CountAdminMoments(ctx context.Context) (int64, error)
 	CountAdminPosts(ctx context.Context) (int64, error)
 	CountAnalyticsBouncedVisits(ctx context.Context, arg CountAnalyticsBouncedVisitsParams) (int64, error)
 	CountAnalyticsViews(ctx context.Context, arg CountAnalyticsViewsParams) (int64, error)
@@ -70,6 +72,7 @@ type Querier interface {
 	DeleteMomentRepost(ctx context.Context, arg DeleteMomentRepostParams) error
 	DeletePost(ctx context.Context, id uuid.UUID) error
 	DeletePostLike(ctx context.Context, arg DeletePostLikeParams) error
+	ExportBackupPayload(ctx context.Context) (json.RawMessage, error)
 	GetAdminByID(ctx context.Context, id uuid.UUID) (GetAdminByIDRow, error)
 	GetAdminByUsername(ctx context.Context, username string) (AdminUser, error)
 	GetAnalyticsAverageVisitDurationSeconds(ctx context.Context, arg GetAnalyticsAverageVisitDurationSecondsParams) (float64, error)
@@ -132,8 +135,10 @@ type Querier interface {
 	ListPostRevisions(ctx context.Context, arg ListPostRevisionsParams) ([]ListPostRevisionsRow, error)
 	ListPostsByCategory(ctx context.Context, arg ListPostsByCategoryParams) ([]ListPostsByCategoryRow, error)
 	ListPublishedPosts(ctx context.Context, arg ListPublishedPostsParams) ([]ListPublishedPostsRow, error)
+	ListScheduledMomentsDue(ctx context.Context) ([]uuid.UUID, error)
 	ListScheduledPostsDue(ctx context.Context) ([]ListScheduledPostsDueRow, error)
 	ListSensitiveWords(ctx context.Context) ([]string, error)
+	PublishMoment(ctx context.Context, id uuid.UUID) error
 	PublishPost(ctx context.Context, arg PublishPostParams) error
 	RecalcGuestbookVoteScore(ctx context.Context, messageID uuid.UUID) error
 	RejectComment(ctx context.Context, arg RejectCommentParams) error
@@ -141,11 +146,13 @@ type Querier interface {
 	RejectGuestbookMessage(ctx context.Context, arg RejectGuestbookMessageParams) error
 	RevokeAllUserTokens(ctx context.Context, adminUserID uuid.UUID) error
 	RevokeRefreshToken(ctx context.Context, id uuid.UUID) error
+	ScheduleMoment(ctx context.Context, arg ScheduleMomentParams) error
 	SchedulePost(ctx context.Context, arg SchedulePostParams) error
 	SearchPosts(ctx context.Context, arg SearchPostsParams) ([]SearchPostsRow, error)
 	SetPostTags(ctx context.Context, postID uuid.UUID) error
 	TouchRefreshToken(ctx context.Context, id uuid.UUID) error
 	TouchVisitor(ctx context.Context, id uuid.UUID) error
+	UnpublishMoment(ctx context.Context, id uuid.UUID) error
 	UnpublishPost(ctx context.Context, arg UnpublishPostParams) error
 	UpdateAdminLastLogin(ctx context.Context, id uuid.UUID) error
 	UpdateFriendLink(ctx context.Context, arg UpdateFriendLinkParams) error

@@ -1,0 +1,19 @@
+---
+import BaseHead from '../../components/base/BaseHead.astro'
+import AdminRouteGuard from '../../components/admin/AdminRouteGuard.astro'
+import AdminBackupManager from '../../components/admin/AdminBackupManager.vue'
+import AdminLayout from '../../layouts/AdminLayout.astro'
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <BaseHead title="数据备份 | Miku Blog" description="后台数据导出与备份" />
+    <AdminRouteGuard />
+  </head>
+  <body>
+    <AdminLayout activeKey="backup" pageTitle="数据备份">
+      <AdminBackupManager client:load />
+    </AdminLayout>
+  </body>
+</html>

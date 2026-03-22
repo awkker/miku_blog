@@ -13,11 +13,12 @@ import (
 )
 
 type PostCommentsHandler struct {
-	svc *service.PostCommentsService
+	svc    *service.PostCommentsService
+	modSvc *service.ModerationService
 }
 
-func NewPostCommentsHandler(svc *service.PostCommentsService) *PostCommentsHandler {
-	return &PostCommentsHandler{svc: svc}
+func NewPostCommentsHandler(svc *service.PostCommentsService, modSvc *service.ModerationService) *PostCommentsHandler {
+	return &PostCommentsHandler{svc: svc, modSvc: modSvc}
 }
 
 func (h *PostCommentsHandler) List(ctx context.Context, c *app.RequestContext) {
@@ -55,6 +56,18 @@ func (h *PostCommentsHandler) Create(ctx context.Context, c *app.RequestContext)
 	if err := c.BindJSON(&req); err != nil || req.AuthorName == "" || req.Content == "" {
 		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "author_name and content required"))
 		return
+	}
+
+	if h.modSvc != nil {
+		word, err := h.modSvc.FindSensitiveWord(ctx, req.AuthorName, req.Content)
+		if err != nil {
+			c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "sensitive-word check failed"))
+			return
+		}
+		if word != "" {
+			c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBlocked, "comment contains blocked keyword"))
+			return
+		}
 	}
 
 	ipHash := hashStr(c.ClientIP())

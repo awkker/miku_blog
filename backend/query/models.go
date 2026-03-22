@@ -144,6 +144,50 @@ func (ns NullModerationStatus) Value() (driver.Value, error) {
 	return string(ns.ModerationStatus), nil
 }
 
+type MomentPublishStatus string
+
+const (
+	MomentPublishStatusDraft     MomentPublishStatus = "draft"
+	MomentPublishStatusPublished MomentPublishStatus = "published"
+	MomentPublishStatusScheduled MomentPublishStatus = "scheduled"
+	MomentPublishStatusArchived  MomentPublishStatus = "archived"
+)
+
+func (e *MomentPublishStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MomentPublishStatus(s)
+	case string:
+		*e = MomentPublishStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MomentPublishStatus: %T", src)
+	}
+	return nil
+}
+
+type NullMomentPublishStatus struct {
+	MomentPublishStatus MomentPublishStatus `json:"moment_publish_status"`
+	Valid               bool                `json:"valid"` // Valid is true if MomentPublishStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMomentPublishStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.MomentPublishStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MomentPublishStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMomentPublishStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MomentPublishStatus), nil
+}
+
 type PostStatus string
 
 const (
@@ -364,18 +408,21 @@ type GuestbookVote struct {
 }
 
 type Moment struct {
-	ID           uuid.UUID        `json:"id"`
-	AuthorName   string           `json:"author_name"`
-	Content      string           `json:"content"`
-	ImageUrls    json.RawMessage  `json:"image_urls"`
-	Status       ModerationStatus `json:"status"`
-	LikeCount    int64            `json:"like_count"`
-	RepostCount  int64            `json:"repost_count"`
-	CommentCount int64            `json:"comment_count"`
-	IpHash       string           `json:"ip_hash"`
-	UaHash       string           `json:"ua_hash"`
-	CreatedAt    time.Time        `json:"created_at"`
-	ReviewedBy   pgtype.UUID      `json:"reviewed_by"`
+	ID            uuid.UUID           `json:"id"`
+	AuthorName    string              `json:"author_name"`
+	Content       string              `json:"content"`
+	ImageUrls     json.RawMessage     `json:"image_urls"`
+	Status        ModerationStatus    `json:"status"`
+	LikeCount     int64               `json:"like_count"`
+	RepostCount   int64               `json:"repost_count"`
+	CommentCount  int64               `json:"comment_count"`
+	IpHash        string              `json:"ip_hash"`
+	UaHash        string              `json:"ua_hash"`
+	CreatedAt     time.Time           `json:"created_at"`
+	ReviewedBy    pgtype.UUID         `json:"reviewed_by"`
+	PublishStatus MomentPublishStatus `json:"publish_status"`
+	PublishedAt   pgtype.Timestamptz  `json:"published_at"`
+	ScheduledAt   pgtype.Timestamptz  `json:"scheduled_at"`
 }
 
 type MomentComment struct {

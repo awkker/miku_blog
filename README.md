@@ -62,10 +62,11 @@ nanamiku-blog/
 | `/friends` | 友情链接页，站点信息卡 + 友链墙 |
 | `/login` | 登录页 |
 | `/admin` | 后台仪表盘（Traffic Overview、Pages/Sources/Environment/Location、Geo Distribution、Traffic 热力矩阵、近期事项） |
-| `/admin/posts` | 文章管理（创建 / 编辑 / 发布 / 定时发布） |
-| `/admin/comments` | 评论审核（批准 / 拒绝 / 删除） |
+| `/admin/posts` | 文章管理（创建 / 编辑 / 草稿 / 发布 / 定时发布） |
+| `/admin/comments` | 评论审核 + 反垃圾指标（批准 / 拒绝 / 删除 / 限流可视化） |
 | `/admin/friends` | 友链管理 |
-| `/admin/moments` | 说说管理（创建 / 删除） |
+| `/admin/moments` | 说说管理（创建 / 编辑 / 草稿 / 发布 / 定时发布） |
+| `/admin/backup` | 数据导出与备份（JSON / SQL 一键下载） |
 
 ## 快速开始
 
@@ -119,9 +120,18 @@ npm run dev                   # 启动开发服务器 :4321
 |------|------|
 | 仪表盘 | `GET /dashboard/stats` `GET /dashboard/trend/views\|comments\|likes` `GET /dashboard/analytics?range=24h\|7d\|30d&offset=0` |
 | 文章管理 | `GET\|POST /posts` `PUT\|DELETE /posts/:id` `POST /posts/:id/publish\|unpublish\|schedule` |
+| 说说管理 | `GET\|POST /moments` `PUT /moments/:id` `POST /moments/:id/publish\|unpublish\|schedule` |
 | 评论审核 | `GET /comments` `POST /comments/:id/approve\|reject` `DELETE /comments/:id` |
+| 反垃圾看板 | `GET /moderation/rate-limit-metrics?minutes=60` |
 | 友链管理 | `GET\|POST /friends` `PUT\|DELETE /friends/:id` |
+| 备份导出 | `GET /backup/export?format=json\|sql` |
 | 审计日志 | `GET /audit-logs` |
+
+## 最近更新
+
+- **草稿 / 定时发布**：文章与说说均支持 `draft` / `published` / `scheduled` 生命周期，并由后端定时任务自动发布到点内容。
+- **反垃圾增强**：留言与评论提交新增敏感词拦截；Redis 限流命中数据可在后台评论页可视化查看（总量 + 趋势 + 规则拆分）。
+- **数据导出与备份**：新增后台一键导出 `JSON` / `SQL`，用于迁移和灾备。
 
 ## Analytics 仪表盘
 

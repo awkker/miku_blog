@@ -52,6 +52,7 @@ type PostDetail struct {
 	Category        string    `json:"category"`
 	Status          string    `json:"status"`
 	PublishedAt     string    `json:"published_at,omitempty"`
+	ScheduledAt     string    `json:"scheduled_at,omitempty"`
 	ViewCount       int64     `json:"view_count"`
 	LikeCount       int64     `json:"like_count"`
 	CommentCount    int64     `json:"comment_count"`
@@ -68,6 +69,7 @@ type AdminPostListItem struct {
 	Category     string    `json:"category"`
 	Status       string    `json:"status"`
 	PublishedAt  string    `json:"published_at,omitempty"`
+	ScheduledAt  string    `json:"scheduled_at,omitempty"`
 	ViewCount    int64     `json:"view_count"`
 	LikeCount    int64     `json:"like_count"`
 	CommentCount int64     `json:"comment_count"`
@@ -250,6 +252,9 @@ func (s *PostsService) GetBySlug(ctx context.Context, slug string, visitorID uui
 	if r.PublishedAt.Valid {
 		detail.PublishedAt = r.PublishedAt.Time.Format(time.RFC3339)
 	}
+	if r.ScheduledAt.Valid {
+		detail.ScheduledAt = r.ScheduledAt.Time.Format(time.RFC3339)
+	}
 	return detail, nil
 }
 
@@ -278,6 +283,9 @@ func (s *PostsService) GetByID(ctx context.Context, id uuid.UUID) (*PostDetail, 
 	if r.PublishedAt.Valid {
 		detail.PublishedAt = r.PublishedAt.Time.Format(time.RFC3339)
 	}
+	if r.ScheduledAt.Valid {
+		detail.ScheduledAt = r.ScheduledAt.Time.Format(time.RFC3339)
+	}
 	return detail, nil
 }
 
@@ -304,11 +312,17 @@ type CreatePostInput struct {
 	HeroImageURL    string
 	Category        string
 	Status          string
+	ScheduledAt     *time.Time
 	Tags            []string
 	AdminID         uuid.UUID
 }
 
 func (s *PostsService) Create(ctx context.Context, in CreatePostInput) (uuid.UUID, error) {
+	var scheduledAt interface{}
+	if in.ScheduledAt != nil {
+		scheduledAt = pgtype.Timestamptz{Time: *in.ScheduledAt, Valid: true}
+	}
+
 	row, err := s.q.CreatePost(ctx, query.CreatePostParams{
 		Slug:            in.Slug,
 		Title:           in.Title,
@@ -318,6 +332,7 @@ func (s *PostsService) Create(ctx context.Context, in CreatePostInput) (uuid.UUI
 		Category:        in.Category,
 		Status:          query.PostStatus(in.Status),
 		CreatedBy:       pgtype.UUID{Bytes: in.AdminID, Valid: true},
+		Column9:         scheduledAt,
 	})
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("create post: %w", err)
@@ -426,9 +441,34 @@ func (s *PostsService) ListAdmin(ctx context.Context, page, size int) ([]AdminPo
 		if r.PublishedAt.Valid {
 			item.PublishedAt = r.PublishedAt.Time.Format(time.RFC3339)
 		}
+		if r.ScheduledAt.Valid {
+			item.ScheduledAt = r.ScheduledAt.Time.Format(time.RFC3339)
+		}
 		items = append(items, item)
 	}
 	return items, total, nil
+}
+
+func (s *PostsService) PublishDueScheduled(ctx context.Context) (int, error) {
+	rows, err := s.q.ListScheduledPostsDue(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("list scheduled posts due: %w", err)
+	}
+	if len(rows) == 0 {
+		return 0, nil
+	}
+
+	published := 0
+	for _, row := range rows {
+		if err := s.q.PublishPost(ctx, query.PublishPostParams{
+			ID:        row.ID,
+			UpdatedBy: pgtype.UUID{},
+		}); err != nil {
+			return published, fmt.Errorf("publish scheduled post %s: %w", row.ID, err)
+		}
+		published++
+	}
+	return published, nil
 }
 
 func (s *PostsService) syncTags(ctx context.Context, postID uuid.UUID, tagNames []string) error {

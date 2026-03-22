@@ -147,6 +147,7 @@ const navGroups = [
     section: 'SYSTEM',
     items: [
       { key: 'friends', label: '友链管理', href: '/admin/friends' },
+      { key: 'backup', label: '数据备份', href: '/admin/backup' },
     ],
   },
 ]

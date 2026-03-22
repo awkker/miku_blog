@@ -62,6 +62,17 @@ func (q *Queries) CheckMomentRepost(ctx context.Context, arg CheckMomentRepostPa
 	return count, err
 }
 
+const countAdminMoments = `-- name: CountAdminMoments :one
+SELECT count(*) FROM moments
+`
+
+func (q *Queries) CountAdminMoments(ctx context.Context) (int64, error) {
+	row := q.db.QueryRow(ctx, countAdminMoments)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const countMomentComments = `-- name: CountMomentComments :one
 SELECT count(*) FROM moment_comments WHERE moment_id = $1 AND status = 'approved'
 `
@@ -74,7 +85,12 @@ func (q *Queries) CountMomentComments(ctx context.Context, momentID uuid.UUID) (
 }
 
 const countMoments = `-- name: CountMoments :one
-SELECT count(*) FROM moments WHERE status = 'approved'
+SELECT count(*)
+FROM moments
+WHERE status = 'approved'
+  AND publish_status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
 `
 
 func (q *Queries) CountMoments(ctx context.Context) (int64, error) {
@@ -85,17 +101,23 @@ func (q *Queries) CountMoments(ctx context.Context) (int64, error) {
 }
 
 const createMoment = `-- name: CreateMoment :one
-INSERT INTO moments (author_name, content, image_urls, ip_hash, ua_hash)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO moments (author_name, content, image_urls, ip_hash, ua_hash, publish_status, published_at, scheduled_at)
+VALUES (
+    $1, $2, $3, $4, $5, $6,
+    CASE WHEN $6 = 'published'::moment_publish_status THEN now() ELSE NULL END,
+    CASE WHEN $6 = 'scheduled'::moment_publish_status THEN $7 ELSE NULL END
+)
 RETURNING id, created_at
 `
 
 type CreateMomentParams struct {
-	AuthorName string          `json:"author_name"`
-	Content    string          `json:"content"`
-	ImageUrls  json.RawMessage `json:"image_urls"`
-	IpHash     string          `json:"ip_hash"`
-	UaHash     string          `json:"ua_hash"`
+	AuthorName    string              `json:"author_name"`
+	Content       string              `json:"content"`
+	ImageUrls     json.RawMessage     `json:"image_urls"`
+	IpHash        string              `json:"ip_hash"`
+	UaHash        string              `json:"ua_hash"`
+	PublishStatus MomentPublishStatus `json:"publish_status"`
+	Column7       interface{}         `json:"column_7"`
 }
 
 type CreateMomentRow struct {
@@ -110,6 +132,8 @@ func (q *Queries) CreateMoment(ctx context.Context, arg CreateMomentParams) (Cre
 		arg.ImageUrls,
 		arg.IpHash,
 		arg.UaHash,
+		arg.PublishStatus,
+		arg.Column7,
 	)
 	var i CreateMomentRow
 	err := row.Scan(&i.ID, &i.CreatedAt)
@@ -261,21 +285,24 @@ func (q *Queries) DeleteMomentRepost(ctx context.Context, arg DeleteMomentRepost
 
 const getMomentByID = `-- name: GetMomentByID :one
 SELECT id, author_name, content, image_urls, status, like_count,
-       repost_count, comment_count, created_at
+       repost_count, comment_count, publish_status, published_at, scheduled_at, created_at
 FROM moments
 WHERE id = $1
 `
 
 type GetMomentByIDRow struct {
-	ID           uuid.UUID        `json:"id"`
-	AuthorName   string           `json:"author_name"`
-	Content      string           `json:"content"`
-	ImageUrls    json.RawMessage  `json:"image_urls"`
-	Status       ModerationStatus `json:"status"`
-	LikeCount    int64            `json:"like_count"`
-	RepostCount  int64            `json:"repost_count"`
-	CommentCount int64            `json:"comment_count"`
-	CreatedAt    time.Time        `json:"created_at"`
+	ID            uuid.UUID           `json:"id"`
+	AuthorName    string              `json:"author_name"`
+	Content       string              `json:"content"`
+	ImageUrls     json.RawMessage     `json:"image_urls"`
+	Status        ModerationStatus    `json:"status"`
+	LikeCount     int64               `json:"like_count"`
+	RepostCount   int64               `json:"repost_count"`
+	CommentCount  int64               `json:"comment_count"`
+	PublishStatus MomentPublishStatus `json:"publish_status"`
+	PublishedAt   pgtype.Timestamptz  `json:"published_at"`
+	ScheduledAt   pgtype.Timestamptz  `json:"scheduled_at"`
+	CreatedAt     time.Time           `json:"created_at"`
 }
 
 func (q *Queries) GetMomentByID(ctx context.Context, id uuid.UUID) (GetMomentByIDRow, error) {
@@ -290,6 +317,9 @@ func (q *Queries) GetMomentByID(ctx context.Context, id uuid.UUID) (GetMomentByI
 		&i.LikeCount,
 		&i.RepostCount,
 		&i.CommentCount,
+		&i.PublishStatus,
+		&i.PublishedAt,
+		&i.ScheduledAt,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -451,7 +481,7 @@ func (q *Queries) IncrementMomentRepostCount(ctx context.Context, id uuid.UUID) 
 
 const listAdminMoments = `-- name: ListAdminMoments :many
 SELECT id, author_name, content, image_urls, status, like_count,
-       repost_count, comment_count, created_at
+       repost_count, comment_count, publish_status, published_at, scheduled_at, created_at
 FROM moments
 ORDER BY created_at DESC
 LIMIT $1 OFFSET $2
@@ -463,15 +493,18 @@ type ListAdminMomentsParams struct {
 }
 
 type ListAdminMomentsRow struct {
-	ID           uuid.UUID        `json:"id"`
-	AuthorName   string           `json:"author_name"`
-	Content      string           `json:"content"`
-	ImageUrls    json.RawMessage  `json:"image_urls"`
-	Status       ModerationStatus `json:"status"`
-	LikeCount    int64            `json:"like_count"`
-	RepostCount  int64            `json:"repost_count"`
-	CommentCount int64            `json:"comment_count"`
-	CreatedAt    time.Time        `json:"created_at"`
+	ID            uuid.UUID           `json:"id"`
+	AuthorName    string              `json:"author_name"`
+	Content       string              `json:"content"`
+	ImageUrls     json.RawMessage     `json:"image_urls"`
+	Status        ModerationStatus    `json:"status"`
+	LikeCount     int64               `json:"like_count"`
+	RepostCount   int64               `json:"repost_count"`
+	CommentCount  int64               `json:"comment_count"`
+	PublishStatus MomentPublishStatus `json:"publish_status"`
+	PublishedAt   pgtype.Timestamptz  `json:"published_at"`
+	ScheduledAt   pgtype.Timestamptz  `json:"scheduled_at"`
+	CreatedAt     time.Time           `json:"created_at"`
 }
 
 func (q *Queries) ListAdminMoments(ctx context.Context, arg ListAdminMomentsParams) ([]ListAdminMomentsRow, error) {
@@ -492,6 +525,9 @@ func (q *Queries) ListAdminMoments(ctx context.Context, arg ListAdminMomentsPara
 			&i.LikeCount,
 			&i.RepostCount,
 			&i.CommentCount,
+			&i.PublishStatus,
+			&i.PublishedAt,
+			&i.ScheduledAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -508,7 +544,10 @@ const listLatestMoments = `-- name: ListLatestMoments :many
 SELECT id, author_name, content, image_urls, created_at
 FROM moments
 WHERE status = 'approved'
-ORDER BY created_at DESC
+  AND publish_status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
+ORDER BY published_at DESC, created_at DESC
 LIMIT $1
 `
 
@@ -598,10 +637,13 @@ func (q *Queries) ListMomentComments(ctx context.Context, arg ListMomentComments
 
 const listMoments = `-- name: ListMoments :many
 SELECT id, author_name, content, image_urls, like_count, repost_count,
-       comment_count, created_at
+       comment_count, publish_status, published_at, scheduled_at, created_at
 FROM moments
 WHERE status = 'approved'
-ORDER BY created_at DESC
+  AND publish_status = 'published'
+  AND published_at IS NOT NULL
+  AND published_at <= now()
+ORDER BY published_at DESC, created_at DESC
 LIMIT $1 OFFSET $2
 `
 
@@ -611,14 +653,17 @@ type ListMomentsParams struct {
 }
 
 type ListMomentsRow struct {
-	ID           uuid.UUID       `json:"id"`
-	AuthorName   string          `json:"author_name"`
-	Content      string          `json:"content"`
-	ImageUrls    json.RawMessage `json:"image_urls"`
-	LikeCount    int64           `json:"like_count"`
-	RepostCount  int64           `json:"repost_count"`
-	CommentCount int64           `json:"comment_count"`
-	CreatedAt    time.Time       `json:"created_at"`
+	ID            uuid.UUID           `json:"id"`
+	AuthorName    string              `json:"author_name"`
+	Content       string              `json:"content"`
+	ImageUrls     json.RawMessage     `json:"image_urls"`
+	LikeCount     int64               `json:"like_count"`
+	RepostCount   int64               `json:"repost_count"`
+	CommentCount  int64               `json:"comment_count"`
+	PublishStatus MomentPublishStatus `json:"publish_status"`
+	PublishedAt   pgtype.Timestamptz  `json:"published_at"`
+	ScheduledAt   pgtype.Timestamptz  `json:"scheduled_at"`
+	CreatedAt     time.Time           `json:"created_at"`
 }
 
 func (q *Queries) ListMoments(ctx context.Context, arg ListMomentsParams) ([]ListMomentsRow, error) {
@@ -638,6 +683,9 @@ func (q *Queries) ListMoments(ctx context.Context, arg ListMomentsParams) ([]Lis
 			&i.LikeCount,
 			&i.RepostCount,
 			&i.CommentCount,
+			&i.PublishStatus,
+			&i.PublishedAt,
+			&i.ScheduledAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -650,17 +698,85 @@ func (q *Queries) ListMoments(ctx context.Context, arg ListMomentsParams) ([]Lis
 	return items, nil
 }
 
+const listScheduledMomentsDue = `-- name: ListScheduledMomentsDue :many
+SELECT id
+FROM moments
+WHERE status = 'approved' AND publish_status = 'scheduled' AND scheduled_at <= now()
+`
+
+func (q *Queries) ListScheduledMomentsDue(ctx context.Context) ([]uuid.UUID, error) {
+	rows, err := q.db.Query(ctx, listScheduledMomentsDue)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []uuid.UUID{}
+	for rows.Next() {
+		var id uuid.UUID
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const publishMoment = `-- name: PublishMoment :exec
+UPDATE moments
+SET publish_status = 'published', published_at = now(), scheduled_at = NULL
+WHERE id = $1
+`
+
+func (q *Queries) PublishMoment(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, publishMoment, id)
+	return err
+}
+
+const scheduleMoment = `-- name: ScheduleMoment :exec
+UPDATE moments
+SET publish_status = 'scheduled', scheduled_at = $2, published_at = NULL
+WHERE id = $1
+`
+
+type ScheduleMomentParams struct {
+	ID          uuid.UUID          `json:"id"`
+	ScheduledAt pgtype.Timestamptz `json:"scheduled_at"`
+}
+
+func (q *Queries) ScheduleMoment(ctx context.Context, arg ScheduleMomentParams) error {
+	_, err := q.db.Exec(ctx, scheduleMoment, arg.ID, arg.ScheduledAt)
+	return err
+}
+
+const unpublishMoment = `-- name: UnpublishMoment :exec
+UPDATE moments
+SET publish_status = 'draft', scheduled_at = NULL, published_at = NULL
+WHERE id = $1
+`
+
+func (q *Queries) UnpublishMoment(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.Exec(ctx, unpublishMoment, id)
+	return err
+}
+
 const updateMoment = `-- name: UpdateMoment :exec
 UPDATE moments
-SET author_name = $2, content = $3, image_urls = $4
+SET author_name = $2, content = $3, image_urls = $4, publish_status = $5,
+    published_at = CASE WHEN $5 = 'published'::moment_publish_status THEN COALESCE(published_at, now()) ELSE NULL END,
+    scheduled_at = CASE WHEN $5 = 'scheduled'::moment_publish_status THEN $6 ELSE NULL END
 WHERE id = $1
 `
 
 type UpdateMomentParams struct {
-	ID         uuid.UUID       `json:"id"`
-	AuthorName string          `json:"author_name"`
-	Content    string          `json:"content"`
-	ImageUrls  json.RawMessage `json:"image_urls"`
+	ID            uuid.UUID           `json:"id"`
+	AuthorName    string              `json:"author_name"`
+	Content       string              `json:"content"`
+	ImageUrls     json.RawMessage     `json:"image_urls"`
+	PublishStatus MomentPublishStatus `json:"publish_status"`
+	ScheduledAt   pgtype.Timestamptz  `json:"scheduled_at"`
 }
 
 func (q *Queries) UpdateMoment(ctx context.Context, arg UpdateMomentParams) error {
@@ -669,6 +785,8 @@ func (q *Queries) UpdateMoment(ctx context.Context, arg UpdateMomentParams) erro
 		arg.AuthorName,
 		arg.Content,
 		arg.ImageUrls,
+		arg.PublishStatus,
+		arg.ScheduledAt,
 	)
 	return err
 }

@@ -146,6 +146,16 @@ func (h *ModerationHandler) ListAuditLogs(ctx context.Context, c *app.RequestCon
 	c.JSON(consts.StatusOK, dto.OK(items))
 }
 
+func (h *ModerationHandler) RateLimitMetrics(ctx context.Context, c *app.RequestContext) {
+	minutes := queryInt(c, "minutes", 60)
+	data, err := h.svc.GetRateLimitMetrics(ctx, minutes)
+	if err != nil {
+		c.JSON(consts.StatusInternalServerError, dto.Err(errcode.ErrInternal, "failed to get rate-limit metrics"))
+		return
+	}
+	c.JSON(consts.StatusOK, dto.OK(data))
+}
+
 func getAdminID(c *app.RequestContext) uuid.UUID {
 	val, exists := c.Get("admin_id")
 	if !exists {

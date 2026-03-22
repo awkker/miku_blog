@@ -46,6 +46,18 @@
               <input v-model="newMoment.author_name" type="text" placeholder="你的昵称" class="compose-meta-input" />
             </div>
             <div class="compose-meta-row">
+              <label class="compose-meta-label">发布状态</label>
+              <select v-model="newMoment.publish_status" class="compose-meta-input">
+                <option value="draft">草稿</option>
+                <option value="published">立即发布</option>
+                <option value="scheduled">定时发布</option>
+              </select>
+            </div>
+            <div v-if="newMoment.publish_status === 'scheduled'" class="compose-meta-row">
+              <label class="compose-meta-label">发布时间</label>
+              <input v-model="newMoment.scheduled_at" type="datetime-local" class="compose-meta-input" />
+            </div>
+            <div class="compose-meta-row">
               <label class="compose-meta-label">图片</label>
               <input v-model="newMoment.image_urls" type="text" placeholder="贴入图片链接, 用逗号分隔 (最多4张)" class="compose-meta-input" />
             </div>
@@ -97,6 +109,18 @@
             <div class="compose-meta-row">
               <label class="compose-meta-label">署名</label>
               <input v-model="editMoment.author_name" type="text" placeholder="你的昵称" class="compose-meta-input" />
+            </div>
+            <div class="compose-meta-row">
+              <label class="compose-meta-label">发布状态</label>
+              <select v-model="editMoment.publish_status" class="compose-meta-input">
+                <option value="draft">草稿</option>
+                <option value="published">立即发布</option>
+                <option value="scheduled">定时发布</option>
+              </select>
+            </div>
+            <div v-if="editMoment.publish_status === 'scheduled'" class="compose-meta-row">
+              <label class="compose-meta-label">发布时间</label>
+              <input v-model="editMoment.scheduled_at" type="datetime-local" class="compose-meta-input" />
             </div>
             <div class="compose-meta-row">
               <label class="compose-meta-label">图片</label>
@@ -153,7 +177,10 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <span class="text-sm font-medium text-slate-900">{{ item.author }}</span>
-                <span class="text-xs text-slate-400">{{ item.createdAt }}</span>
+                <span class="rounded-full px-2 py-0.5 text-[11px] font-medium" :class="statusClass(item.publishStatus)">
+                  {{ statusLabel(item.publishStatus) }}
+                </span>
+                <span class="text-xs text-slate-400">{{ item.displayTime }}</span>
               </div>
               <p class="mt-1.5 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{{ item.content }}</p>
               <div v-if="item.images.length > 0" class="mt-2.5 flex gap-2">
@@ -173,14 +200,42 @@
               </div>
             </div>
             <div class="shrink-0 opacity-0 transition group-hover:opacity-100">
-              <button
-                type="button"
-                class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-700 transition hover:border-miku/40 hover:text-miku"
-                aria-label="编辑说说"
-                @click="startEditMoment(item)"
-              >
-                编辑
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-700 transition hover:border-miku/40 hover:text-miku"
+                  aria-label="编辑说说"
+                  @click="startEditMoment(item)"
+                >
+                  编辑
+                </button>
+                <button
+                  v-if="item.publishStatus !== 'published'"
+                  type="button"
+                  class="rounded-xl border border-emerald-200/80 bg-white/50 px-2.5 py-1 text-xs text-emerald-600 transition hover:bg-emerald-50"
+                  aria-label="发布说说"
+                  @click="publishMoment(item.id)"
+                >
+                  发布
+                </button>
+                <button
+                  type="button"
+                  class="rounded-xl border border-[#e9d5ff]/80 bg-white/50 px-2.5 py-1 text-xs text-[#9333ea] transition hover:bg-[#faf5ff]"
+                  aria-label="定时发布说说"
+                  @click="scheduleMoment(item.id)"
+                >
+                  定时
+                </button>
+                <button
+                  v-if="item.publishStatus !== 'draft'"
+                  type="button"
+                  class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-600 transition hover:bg-slate-50"
+                  aria-label="转为草稿"
+                  @click="unpublishMoment(item.id)"
+                >
+                  转草稿
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -205,6 +260,9 @@ interface ApiMoment {
   like_count: number
   repost_count: number
   comment_count: number
+  publish_status?: 'draft' | 'published' | 'scheduled'
+  published_at?: string
+  scheduled_at?: string
   created_at: string
 }
 
@@ -216,6 +274,11 @@ interface MomentItem {
   likes: number
   reposts: number
   comments: number
+  publishStatus: 'draft' | 'published' | 'scheduled'
+  publishedAt: string
+  scheduledAt: string
+  scheduledAtISO: string
+  displayTime: string
   createdAt: string
 }
 
@@ -223,6 +286,8 @@ interface MomentForm {
   author_name: string
   content: string
   image_urls: string
+  publish_status: 'draft' | 'published' | 'scheduled'
+  scheduled_at: string
 }
 
 function formatDate(iso: string): string {
@@ -235,6 +300,9 @@ function formatDate(iso: string): string {
 }
 
 function mapMoment(item: ApiMoment): MomentItem {
+  const publishStatus = item.publish_status || 'published'
+  const publishedAt = item.published_at ? formatDate(item.published_at) : '--'
+  const scheduledAt = item.scheduled_at ? formatDate(item.scheduled_at) : '--'
   return {
     id: item.id,
     author: item.author_name,
@@ -243,6 +311,11 @@ function mapMoment(item: ApiMoment): MomentItem {
     likes: Number(item.like_count) || 0,
     reposts: Number(item.repost_count) || 0,
     comments: Number(item.comment_count) || 0,
+    publishStatus,
+    publishedAt,
+    scheduledAt,
+    scheduledAtISO: item.scheduled_at || '',
+    displayTime: publishStatus === 'scheduled' ? scheduledAt : publishedAt,
     createdAt: formatDate(item.created_at),
   }
 }
@@ -252,11 +325,22 @@ function createEmptyMomentForm(): MomentForm {
     author_name: '',
     content: '',
     image_urls: '',
+    publish_status: 'draft',
+    scheduled_at: '',
   }
 }
 
 function toImageURLs(input: string): string[] {
   return input.split(',').map((u: string) => u.trim()).filter(Boolean)
+}
+
+function formatDateInputLocal(date: Date): string {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000)
+  return local.toISOString().slice(0, 16)
+}
+
+function localInputToRFC3339(value: string): string {
+  return new Date(value).toISOString()
 }
 
 const momentsList = ref<MomentItem[]>([])
@@ -308,7 +392,7 @@ const totalComments = computed(() => momentsList.value.reduce((sum, m) => sum + 
 async function loadMoments() {
   loading.value = true
   try {
-    const data = await api.get<PagedData<ApiMoment>>('/moments?size=50')
+    const data = await api.get<PagedData<ApiMoment>>('/admin/moments?size=50')
     momentsList.value = (data.items || []).map(mapMoment)
   } catch (err) {
     console.error('[AdminMoments] loadMoments failed:', err)
@@ -321,12 +405,20 @@ async function loadMoments() {
 
 async function createMoment() {
   if (!newMoment.value.author_name.trim() || !newMoment.value.content.trim()) return
+  if (newMoment.value.publish_status === 'scheduled' && !newMoment.value.scheduled_at) {
+    showToast('请选择定时发布时间', 'error')
+    return
+  }
   creating.value = true
   try {
-    await api.post('/moments', {
+    await api.post('/admin/moments', {
       author_name: newMoment.value.author_name.trim(),
       content: newMoment.value.content.trim(),
       image_urls: toImageURLs(newMoment.value.image_urls),
+      publish_status: newMoment.value.publish_status,
+      scheduled_at: newMoment.value.publish_status === 'scheduled'
+        ? localInputToRFC3339(newMoment.value.scheduled_at)
+        : undefined,
     })
     closeCreateForm()
     newMoment.value = createEmptyMomentForm()
@@ -347,6 +439,10 @@ function startEditMoment(item: MomentItem) {
     author_name: item.author,
     content: item.content,
     image_urls: (item.images || []).join(', '),
+    publish_status: item.publishStatus,
+    scheduled_at: item.publishStatus === 'scheduled' && item.scheduledAtISO
+      ? formatDateInputLocal(new Date(item.scheduledAtISO))
+      : '',
   }
   showEditForm.value = true
   showCreateForm.value = false
@@ -355,12 +451,20 @@ function startEditMoment(item: MomentItem) {
 async function updateMoment() {
   if (!editingMomentID.value) return
   if (!editMoment.value.author_name.trim() || !editMoment.value.content.trim()) return
+  if (editMoment.value.publish_status === 'scheduled' && !editMoment.value.scheduled_at) {
+    showToast('请选择定时发布时间', 'error')
+    return
+  }
   editing.value = true
   try {
     await api.put(`/admin/moments/${editingMomentID.value}`, {
       author_name: editMoment.value.author_name.trim(),
       content: editMoment.value.content.trim(),
       image_urls: toImageURLs(editMoment.value.image_urls),
+      publish_status: editMoment.value.publish_status,
+      scheduled_at: editMoment.value.publish_status === 'scheduled'
+        ? localInputToRFC3339(editMoment.value.scheduled_at)
+        : undefined,
     })
     showToast('说说更新成功', 'success')
     closeEditForm()
@@ -374,9 +478,60 @@ async function updateMoment() {
   }
 }
 
+async function publishMoment(id: string) {
+  try {
+    await api.post(`/admin/moments/${id}/publish`)
+    await loadMoments()
+    showToast('说说发布成功', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '发布失败，请稍后重试'
+    showToast(msg, 'error')
+  }
+}
+
+async function scheduleMoment(id: string) {
+  const defaultTime = formatDateInputLocal(new Date(Date.now() + 30 * 60 * 1000))
+  const next = window.prompt('请输入计划发布时间（格式：YYYY-MM-DDTHH:mm）', defaultTime)
+  if (!next) return
+
+  try {
+    await api.post(`/admin/moments/${id}/schedule`, {
+      scheduled_at: localInputToRFC3339(next),
+    })
+    await loadMoments()
+    showToast('说说已设为定时发布', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '定时发布设置失败，请稍后重试'
+    showToast(msg, 'error')
+  }
+}
+
+async function unpublishMoment(id: string) {
+  try {
+    await api.post(`/admin/moments/${id}/unpublish`)
+    await loadMoments()
+    showToast('说说已转为草稿', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '转草稿失败，请稍后重试'
+    showToast(msg, 'error')
+  }
+}
+
 onMounted(() => {
   loadMoments()
 })
+
+function statusClass(status: MomentItem['publishStatus']) {
+  if (status === 'published') return 'bg-emerald-100 text-emerald-700'
+  if (status === 'draft') return 'bg-slate-100 text-slate-600'
+  return 'bg-[#f3e8ff] text-[#9333ea]'
+}
+
+function statusLabel(status: MomentItem['publishStatus']) {
+  if (status === 'published') return '已发布'
+  if (status === 'draft') return '草稿'
+  return '定时发布'
+}
 </script>
 
 <style scoped>

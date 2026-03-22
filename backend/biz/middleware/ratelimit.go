@@ -42,11 +42,34 @@ func RateLimit(rdb *redis.Client, keyPrefix string, limit int, window time.Durat
 		}
 
 		if result == 0 {
+			recordRateLimitMetric(ctx, rdb, keyPrefix, true)
 			c.AbortWithStatusJSON(consts.StatusTooManyRequests,
 				dto.Err(errcode.ErrRateLimited, "too many requests, please try again later"))
 			return
 		}
 
+		recordRateLimitMetric(ctx, rdb, keyPrefix, false)
 		c.Next(ctx)
 	}
+}
+
+func recordRateLimitMetric(ctx context.Context, rdb *redis.Client, rule string, blocked bool) {
+	if rdb == nil || rule == "" {
+		return
+	}
+
+	status := "allow"
+	if blocked {
+		status = "block"
+	}
+
+	bucket := time.Now().UTC().Format("200601021504")
+	key := fmt.Sprintf("rlm:%s:%s:%s", rule, bucket, status)
+
+	pipe := rdb.Pipeline()
+	pipe.Incr(ctx, key)
+	pipe.Expire(ctx, key, 72*time.Hour)
+	pipe.SAdd(ctx, "rlm:rules", rule)
+	pipe.Expire(ctx, "rlm:rules", 30*24*time.Hour)
+	_, _ = pipe.Exec(ctx)
 }

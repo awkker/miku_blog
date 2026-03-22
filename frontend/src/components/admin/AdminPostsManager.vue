@@ -80,7 +80,14 @@
             <select v-model="newPost.status" class="meta-input cursor-pointer py-1.5 pr-7 text-xs">
               <option value="draft">草稿</option>
               <option value="published">直接发布</option>
+              <option value="scheduled">定时发布</option>
             </select>
+            <input
+              v-if="newPost.status === 'scheduled'"
+              v-model="newPost.scheduled_at"
+              type="datetime-local"
+              class="meta-input py-1.5 text-xs"
+            />
             <button type="button" class="rounded-xl px-4 py-2 text-sm text-slate-400 transition hover:bg-slate-100/50 hover:text-slate-600" @click="closeCreateForm">取消</button>
             <MikuButton type="submit" variant="solid" :disabled="creating">{{ creating ? '创建中...' : '创建文章' }}</MikuButton>
           </div>
@@ -174,7 +181,7 @@
               <th class="px-5 py-3.5 font-semibold text-slate-700">分类</th>
               <th class="px-5 py-3.5 font-semibold text-slate-700">状态</th>
               <th class="px-5 py-3.5 font-semibold text-slate-700 text-right">浏览量</th>
-              <th class="px-5 py-3.5 font-semibold text-slate-700">发布时间</th>
+              <th class="px-5 py-3.5 font-semibold text-slate-700">发布时间/计划时间</th>
               <th class="px-5 py-3.5 font-semibold text-slate-700 text-center">操作</th>
             </tr>
           </thead>
@@ -195,7 +202,7 @@
                 </span>
               </td>
               <td class="px-5 py-3.5 text-right font-mono text-slate-700">{{ post.views.toLocaleString() }}</td>
-              <td class="px-5 py-3.5 text-slate-600">{{ post.publishedAt }}</td>
+              <td class="px-5 py-3.5 text-slate-600">{{ post.displayTime }}</td>
               <td class="px-5 py-3.5 text-center">
                 <div class="flex items-center justify-center gap-2">
                   <button
@@ -214,6 +221,23 @@
                     @click="publishPost(post.id)"
                   >
                     发布
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-xl border border-[#e9d5ff]/80 bg-white/50 px-2.5 py-1 text-xs text-[#9333ea] transition hover:bg-[#faf5ff]"
+                    aria-label="定时发布文章"
+                    @click="schedulePost(post.id)"
+                  >
+                    定时
+                  </button>
+                  <button
+                    v-if="post.status !== 'draft'"
+                    type="button"
+                    class="rounded-xl border border-slate-200/80 bg-white/50 px-2.5 py-1 text-xs text-slate-600 transition hover:bg-slate-50"
+                    aria-label="转为草稿"
+                    @click="unpublishPost(post.id)"
+                  >
+                    转草稿
                   </button>
                   <button
                     type="button"
@@ -248,6 +272,7 @@ interface ApiPost {
   category: string
   status: string
   published_at?: string
+  scheduled_at?: string
   view_count: number
   like_count: number
   comment_count: number
@@ -279,6 +304,8 @@ interface Post {
   status: 'published' | 'draft' | 'scheduled'
   views: number
   publishedAt: string
+  scheduledAt: string
+  displayTime: string
 }
 
 interface PostForm {
@@ -291,7 +318,8 @@ interface PostForm {
 }
 
 interface NewPostForm extends PostForm {
-  status: 'draft' | 'published'
+  status: 'draft' | 'published' | 'scheduled'
+  scheduled_at: string
 }
 
 function mapStatus(s: string): 'published' | 'draft' | 'scheduled' {
@@ -303,10 +331,28 @@ function mapStatus(s: string): 'published' | 'draft' | 'scheduled' {
 function formatDate(iso?: string): string {
   if (!iso) return '--'
   try {
-    return iso.slice(0, 10)
+    const d = new Date(iso)
+    return d.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
   } catch {
     return iso
   }
+}
+
+function formatDateInputLocal(date: Date): string {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000)
+  return local.toISOString().slice(0, 16)
+}
+
+function localInputToRFC3339(value: string): string {
+  const date = new Date(value)
+  return date.toISOString()
 }
 
 function createEmptyPostForm(): PostForm {
@@ -324,6 +370,7 @@ function createEmptyNewPostForm(): NewPostForm {
   return {
     ...createEmptyPostForm(),
     status: 'draft',
+    scheduled_at: '',
   }
 }
 
@@ -365,13 +412,17 @@ function toPostPayload(form: PostForm) {
 }
 
 function mapPost(item: ApiPost): Post {
+  const publishedAt = formatDate(item.published_at)
+  const scheduledAt = formatDate(item.scheduled_at)
   return {
     id: item.id,
     title: item.title,
     category: item.category || '--',
     status: mapStatus(item.status),
     views: Number(item.view_count) || 0,
-    publishedAt: item.status === 'published' ? formatDate(item.published_at) : '--',
+    publishedAt,
+    scheduledAt,
+    displayTime: item.status === 'scheduled' ? scheduledAt : publishedAt,
   }
 }
 
@@ -428,11 +479,18 @@ async function loadPosts() {
 
 async function createPost() {
   if (!newPost.value.title.trim()) return
+  if (newPost.value.status === 'scheduled' && !newPost.value.scheduled_at) {
+    showToast('请选择定时发布时间', 'error')
+    return
+  }
   creating.value = true
   try {
     await api.post('/admin/posts', {
       ...toPostPayload(newPost.value),
       status: newPost.value.status,
+      scheduled_at: newPost.value.status === 'scheduled'
+        ? localInputToRFC3339(newPost.value.scheduled_at)
+        : undefined,
     })
     closeCreateForm()
     newPost.value = createEmptyNewPostForm()
@@ -489,11 +547,41 @@ async function updatePost() {
 async function publishPost(id: string) {
   try {
     await api.post(`/admin/posts/${id}/publish`)
-    posts.value = posts.value.map((p) => p.id === id ? { ...p, status: 'published' as const } : p)
+    await loadPosts()
     showToast('文章发布成功', 'success')
   } catch (err) {
     const msg = err instanceof ApiError ? err.message : '发布失败，请稍后重试'
     console.error('[AdminPosts] publishPost failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+async function schedulePost(id: string) {
+  const defaultTime = formatDateInputLocal(new Date(Date.now() + 30 * 60 * 1000))
+  const next = window.prompt('请输入计划发布时间（格式：YYYY-MM-DDTHH:mm）', defaultTime)
+  if (!next) return
+
+  try {
+    await api.post(`/admin/posts/${id}/schedule`, {
+      scheduled_at: localInputToRFC3339(next),
+    })
+    await loadPosts()
+    showToast('文章已设为定时发布', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '定时发布设置失败，请稍后重试'
+    console.error('[AdminPosts] schedulePost failed:', err)
+    showToast(msg, 'error')
+  }
+}
+
+async function unpublishPost(id: string) {
+  try {
+    await api.post(`/admin/posts/${id}/unpublish`)
+    await loadPosts()
+    showToast('文章已转为草稿', 'success')
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : '转草稿失败，请稍后重试'
+    console.error('[AdminPosts] unpublishPost failed:', err)
     showToast(msg, 'error')
   }
 }
@@ -517,7 +605,7 @@ onMounted(() => {
 function statusClass(status: Post['status']) {
   if (status === 'published') return 'bg-emerald-100 text-emerald-700'
   if (status === 'draft') return 'bg-slate-100 text-slate-600'
-  return 'bg-purple-100 text-purple-700'
+  return 'bg-[#f3e8ff] text-[#9333ea]'
 }
 
 function statusLabel(status: Post['status']) {

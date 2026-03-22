@@ -57,6 +57,7 @@ type createPostReq struct {
 	HeroImageURL    string   `json:"hero_image_url"`
 	Category        string   `json:"category"`
 	Status          string   `json:"status"`
+	ScheduledAt     string   `json:"scheduled_at"`
 	Tags            []string `json:"tags"`
 }
 
@@ -70,6 +71,24 @@ func (h *PostsAdminHandler) Create(ctx context.Context, c *app.RequestContext) {
 	if req.Status == "" {
 		req.Status = "draft"
 	}
+	if req.Status != "draft" && req.Status != "published" && req.Status != "scheduled" {
+		c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "status must be draft, published, or scheduled"))
+		return
+	}
+
+	var scheduledAt *time.Time
+	if req.Status == "scheduled" {
+		if req.ScheduledAt == "" {
+			c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "scheduled_at required for scheduled posts"))
+			return
+		}
+		parsed, parseErr := time.Parse(time.RFC3339, req.ScheduledAt)
+		if parseErr != nil {
+			c.JSON(consts.StatusBadRequest, dto.Err(errcode.ErrBadRequest, "invalid scheduled_at format"))
+			return
+		}
+		scheduledAt = &parsed
+	}
 
 	adminID := getAdminID(c)
 	id, err := h.svc.Create(ctx, service.CreatePostInput{
@@ -80,6 +99,7 @@ func (h *PostsAdminHandler) Create(ctx context.Context, c *app.RequestContext) {
 		HeroImageURL:    req.HeroImageURL,
 		Category:        req.Category,
 		Status:          req.Status,
+		ScheduledAt:     scheduledAt,
 		Tags:            req.Tags,
 		AdminID:         adminID,
 	})
